@@ -1,0 +1,118 @@
+{{ trend_chart_data|json_script:"analytics-trend-data" }}
+{{ platform_chart_data|json_script:"analytics-platform-data" }}
+{{ category_chart_data|json_script:"analytics-category-data" }}
+<script>
+const analyticsTrendData = JSON.parse(document.getElementById('analytics-trend-data')?.textContent || '[]');
+const analyticsPlatformData = JSON.parse(document.getElementById('analytics-platform-data')?.textContent || '[]');
+const analyticsCategoryData = JSON.parse(document.getElementById('analytics-category-data')?.textContent || '[]');
+
+function buildTrendChart() {
+    const canvas = document.getElementById('performanceTrendChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
+    const labels = analyticsTrendData.map(item => item.label);
+    const successSeries = analyticsTrendData.map(item => item.success_rate);
+    const callsSeries = analyticsTrendData.map(item => item.calls);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Success Rate %',
+                    data: successSeries,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.15)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Signals',
+                    data: callsSeries,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.15)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#e5e7eb' } } },
+            scales: {
+                x: { ticks: { color: '#e5e7eb' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#e5e7eb' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y1: { position: 'right', ticks: { color: '#e5e7eb' }, grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+}
+
+function buildPlatformChart() {
+    const canvas = document.getElementById('platformComparisonChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
+    const labels = analyticsPlatformData.map(item => item.label);
+    const counts = analyticsPlatformData.map(item => item.count);
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: counts,
+                backgroundColor: ['#6366F1', '#0EA5E9', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { color: '#e5e7eb' } } }
+        }
+    });
+}
+
+function buildAssetChart() {
+    const canvas = document.getElementById('assetTypeChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
+    const labels = analyticsCategoryData.map(item => item.label);
+    const accuracies = analyticsCategoryData.map(item => item.accuracy);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Accuracy %',
+                data: accuracies,
+                backgroundColor: '#818cf8',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#e5e7eb' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#e5e7eb' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            }
+        }
+    });
+}
+
+(function initAnalyticsCharts() {
+    const run = () => {
+        buildTrendChart();
+        buildPlatformChart();
+        buildAssetChart();
+    };
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+    } else {
+        run();
+    }
+})();
+</script>

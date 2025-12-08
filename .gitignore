@@ -1,0 +1,361 @@
+# ============================================
+# DJANGO PROJECT .GITIGNORE
+# Kill Shill - Trading Analytics Platform
+# ============================================
+
+# ============================================
+# PYTHON
+# ============================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+# ============================================
+# DJANGO
+# ============================================
+# Static files (collected)
+staticfiles/
+static_root/
+
+# Media files
+media/
+media_root/
+
+# Local development database
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+db.sqlite3-journal
+
+# Django migrations (optional - uncomment if you want to ignore)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Django secret key and settings
+.env
+.env.local
+.env.development
+.env.production
+local_settings.py
+settings_local.py
+
+# Django logs
+*.log
+logs/
+log/
+
+# Django session files
+django_session/
+
+# ============================================
+# CELERY
+# ============================================
+celerybeat-schedule
+celerybeat.pid
+# ============================================
+# DATABASE
+# ============================================
+# PostgreSQL
+*.sql
+*.dump
+*.backup
+
+# MySQL
+*.cnf
+
+# Database credentials
+database.conf
+db_config.py
+
+# ============================================
+# WEB SERVERS
+# ============================================
+# Nginx
+nginx.conf
+nginx_local.conf
+
+# Apache
+.htaccess
+httpd.conf
+
+# ============================================
+# DEVELOPMENT TOOLS
+# ============================================
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+# ============================================
+# OPERATING SYSTEM
+# ============================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ============================================
+# SECURITY & CREDENTIALS
+# ============================================
+# API keys and secrets
+.secrets
+secrets.json
+*.key
+*.pem
+*.p12
+*.pfx
+
+# OAuth credentials
+client_secrets.json
+credentials.json
+
+# SSL certificates
+*.crt
+*.cert
+*.cer
+*.der
+
+# AWS credentials
+.aws/
+
+# Google Cloud credentials
+gcloud/
+google_application_credentials.json
+# ============================================
+# THIRD-PARTY SERVICES
+# ============================================
+# Apify API
+apify_credentials.py
+apify_config.json
+
+# TikTok API
+tiktok_credentials.py
+
+# Telegram Bot
+telegram_config.py
+bot_credentials.json
+
+# Email credentials
+email_config.py
+smtp_credentials.json
+
+# ============================================
+# CACHING
+# ============================================
+# Redis
+dump.rdb
+
+# Memcached
+*.mc
+
+# Django cache
+django_cache/
+
+# ============================================
+# DOCUMENTATION
+# ============================================
+# Sphinx documentation
+docs/_build/
+docs/build/
+# MkDocs documentation
+site/
+
+# ============================================
+# NODE.JS (if using frontend tools)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ============================================
+# BACKUP FILES
+# ============================================
+*.bak
+*.backup
+*.old
+*.orig
+*_backup
+backup_*
+
+# Templates backup (project specific)
+templates_backup/
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+*.tmp
+*.temp
+temp/
+tmp/
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+.dockerignore
+
+# ============================================
+# DEPLOYMENT
+# ============================================
+# Deployment scripts
+deploy.sh
+deployment/
+
+# Server configuration
+gunicorn.conf.py
+uwsgi.ini
+
+# ============================================
+# MONITORING & ANALYTICS
+# ============================================
+# Error tracking
+sentry_config.py
+
+# Analytics
+google_analytics.json
+
+# ============================================
+# TESTING
+# ============================================
+# Test files (project specific)
+test_*.py
+*_test.py
+testing/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# ============================================
+# PROJECT SPECIFIC
+# ============================================
+# Auto-approval system logs
+auto_approval.log
+auto_approval_*.log
+
+# Django logs
+django.log
+django_*.log
+
+# Screenshots (if containing sensitive data)
+# screenshots/
+
+# Test scripts
+test_oauth.py
+test_tiktok_*.py
+test_auto_approval.py
+
+# Update scripts
+update_*.py
+
+# Inspection scripts
+inspect_*.py
+# Documentation files (if they contain sensitive info)
+# Uncomment if needed:
+# *_README.md
+# *_SETUP*.md
+
+# ============================================
+# CUSTOM EXCLUSIONS
+# ============================================
+# Add any project-specific files to ignore here
+
+# Local development files
+local/
+dev/
+
+# Personal notes
+notes.txt
+todo.txt
+NOTES.md
+
+# Configuration overrides
+config_override.py
+settings_override.py

@@ -1,0 +1,1158 @@
+{% extends 'base_dashboard.html' %}
+{% load static humanize %}
+
+{% block title %}Search Influencers - KillShill{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active" aria-current="page">Search</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block page_title %}Search{% endblock %}
+
+{% block page_subtitle %}
+<p class="page-subtitle">Explore verified KOLs across platforms with confidence-ranked results.</p>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:submit_influencer' %}" class="btn btn-primary">
+    <i class="fas fa-plus-circle me-2"></i>
+    Submit Influencer
+</a>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Search Page Responsive Styling */
+.search-form-responsive {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .search-form-responsive {
+        grid-template-columns: 2fr 1fr 1fr auto;
+        align-items: end;
+    }
+}
+
+@media (min-width: 992px) {
+    .search-form-responsive {
+        grid-template-columns: 3fr 1.2fr 1.2fr auto;
+    }
+}
+
+.search-query-field {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+    .search-query-field {
+        grid-column: 1;
+    }
+}
+
+.search-results-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    .search-results-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        padding: 0;
+    }
+}
+
+@media (min-width: 992px) {
+    .search-results-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+@media (min-width: 1400px) {
+    .search-results-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+}
+
+.search-results-grid.list-view {
+    grid-template-columns: 1fr !important;
+}
+
+.search-result-card {
+    background: var(--background)!important;
+    border: 1px solid var(--accent) !important;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 300px;
+}
+
+/* Removed cartoonish hover effects */
+
+@media (min-width: 1200px) {
+    .search-result-card {
+        min-height: 280px;
+        padding: 1rem;
+    }
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.result-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.result-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.result-avatar1{
+   width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-gradient-from), var(--green-gradient-to));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-black);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.result-name {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    display: block;
+    word-break: break-word;
+}
+
+.result-name:hover {
+    color: var(--primary);
+}
+
+.result-handle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 0.125rem;
+}
+
+.platform-chip {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.result-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .result-metrics {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .result-metrics {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+    }
+}
+
+.metric-block1 {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+  background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (min-width: 1200px) {
+    .metric-block1 {
+        padding: 0.5rem;
+        min-height: 60px;
+    }
+}
+
+.metric-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.metric-value.metric-positive { color: #10b981; }
+.metric-value.metric-warning { color: #f59e0b; }
+.metric-value.metric-muted { color: var(--text-secondary); }
+
+.result-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+}
+
+.result-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.result-tags {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Save/Watchlist Button Styling */
+.leaderboard-save-btn {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: var(--text-secondary) !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    font-size: 0 !important; /* Hide any text */
+    flex-shrink: 0 !important;
+    text-indent: -9999px !important; /* Push text out of view */
+    overflow: hidden !important;
+}
+
+.leaderboard-save-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+.leaderboard-save-btn.saved {
+    background: rgba(245, 158, 11, 0.15) !important;
+    border-color: #f59e0b !important;
+    color: #f59e0b !important;
+}
+
+.leaderboard-save-btn.saved:hover {
+    background: rgba(245, 158, 11, 0.25) !important;
+}
+
+/* Ensure only icon is visible */
+.leaderboard-save-btn i {
+    font-size: 16px !important;
+    line-height: 1 !important;
+    text-indent: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.leaderboard-pill {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.search-summary-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .search-summary-strip {
+        justify-content: flex-start;
+    }
+}
+
+.summary-pill {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-results-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+@media (min-width: 576px) {
+    .search-results-tools {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+}
+
+.search-sort-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Search pagination */
+.search-pagination-nav {
+    display: flex;
+    justify-content: center;
+}
+
+.search-pagination-nav .pagination {
+    margin: 0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+    .card-body { padding: 1rem; }
+    
+    .search-result-card {
+        min-height: 280px;
+        padding: 1rem;
+    }
+    
+    .result-metrics { 
+        grid-template-columns: 1fr 1fr; 
+        gap: 0.5rem;
+    }
+    
+    .result-footer { 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 0.75rem; 
+        text-align: center;
+    }
+    
+    .result-actions { 
+        justify-content: center; 
+        order: 1;
+    }
+    
+    .result-tags {
+        order: 2;
+        text-align: center;
+    }
+    
+    .search-results-tools { 
+        align-items: stretch; 
+        gap: 0.5rem;
+    }
+    
+    .search-results-tools .btn-group { 
+        justify-self: stretch; 
+    }
+    
+    .card-header { padding: 1rem; }
+    .search-summary-strip { margin: 1rem; }
+    
+    .metric-label {
+        font-size: 0.65rem;
+    }
+    
+    .metric-value {
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-page">
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="search-form-responsive" id="searchForm">
+                {% csrf_token %}
+                <div class="search-query-field">
+                    <label class="form-label small text-muted">Search Query</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" name="q" placeholder="Search by name, handle, or URL..." value="{{ query }}">
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label small text-muted">Platform</label>
+                    <select class="form-select" name="platform" id="platformFilter">
+                        <option value="" {% if not selected_platform %}selected{% endif %}>All</option>
+                        {% for value,label in search_platform_choices %}
+                        <option value="{{ value }}" {% if selected_platform == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label small text-muted">Category</label>
+                    <select class="form-select" name="category" id="categoryFilter">
+                        <option value="" {% if not selected_category %}selected{% endif %}>All</option>
+                        {% for value,label in search_category_choices %}
+                        <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-gradient w-100">
+                        <i class="fas fa-search me-2"></i>
+                        Search
+                    </button>
+                </div>
+                <!-- Hidden sort field to ensure it's included in form submissions -->
+                <input type="hidden" name="sort" id="hiddenSortField" value="{{ sort_by|default:'relevance' }}">
+            </form>
+        </div>
+    </div>
+
+    {% if search_stats %}
+    <div class="search-summary-strip mb-4">
+        <span class="summary-pill">
+            <i class="fas fa-user-check text-success"></i>
+            {{ search_stats.total_influencers|intcomma }} verified influencers
+        </span>
+        <span class="summary-pill">
+            <i class="fas fa-bullseye text-warning"></i>
+            {{ search_stats.total_trade_calls|intcomma }} total calls
+        </span>
+        <span class="summary-pill">
+            <i class="fas fa-chart-line text-info"></i>
+            {{ search_stats.active_calls|intcomma }} active signals
+        </span>
+        <span class="summary-pill">
+            <i class="fas fa-percentage text-primary"></i>
+            {{ search_stats.success_rate }}% success rate
+        </span>
+    </div>
+    {% endif %}
+
+    <div class="card" id="searchResults">
+        <div class="card-header">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+                <div>
+                    <h5 class="card-title mb-1">
+                        <i class="fas fa-search text-primary me-2"></i>
+                        Search Results
+                    </h5>
+                    {% with payload=initial_search_payload %}
+                    {% if payload.total %}
+                    <p class="card-subtitle mb-0 text-muted" id="resultsCount">
+                        Showing {{ initial_result_window.start|intcomma }} – {{ initial_result_window.end|intcomma }} of {{ payload.total|intcomma }} influencers
+                    </p>
+                    {% else %}
+                    <p class="card-subtitle mb-0 text-muted" id="resultsCount">Ready when you are.</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="search-results-tools">
+                    <div class="search-sort-control" id="sortOptions" {% if initial_search_payload.total %}style="display: flex;"{% else %}style="display: none;"{% endif %}>
+                        <label class="text-muted small mb-0 me-2" for="sortBy">Sort by</label>
+                        <select class="form-select form-select-sm" name="sort" id="sortBy" style="min-width: 120px;">
+                            <option value="relevance" {% if sort_by == 'relevance' %}selected{% endif %}>Relevance</option>
+                            <option value="accuracy" {% if sort_by == 'accuracy' %}selected{% endif %}>Accuracy</option>
+                            <option value="calls" {% if sort_by == 'calls' %}selected{% endif %}>Total Calls</option>
+                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                        </select>
+                    </div>
+                    <div class="btn-group btn-group-sm ms-2" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" id="viewGrid" aria-label="Grid view">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="viewList" aria-label="List view">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% with payload=initial_search_payload %}
+            {% if payload.results %}
+            <div id="searchContent" class="search-results-grid">
+                {% for item in payload.results %}
+                <article class="search-result-card">
+                    <header class="result-header">
+                        <div class="result-identity">
+                            <div class="btn-primary">{{ item.channel_name|default:item.author_name|default:'?'|first|upper }}</div>
+                            <div>
+                                <a class="result-name" href="/dashboard/influencer/{{ item.id }}/">
+                                    {{ item.channel_name|default:item.author_name|default:'Unknown' }}
+                                </a>
+                                <div class="result-handle">
+                                    {% if item.author_name %}@{{ item.author_name }}{% else %}Not provided{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="platform-chip">{{ item.platform|default:'Unknown' }}</span>
+                    </header>
+                    <div class="result-metrics">
+                        <div class="metric-block1">
+                            <span class="metric-label">Accuracy</span>
+                            <span class="metric-value {% if item.accuracy >= 75 %}metric-positive{% elif item.accuracy >= 50 %}metric-warning{% else %}metric-muted{% endif %}">{{ item.accuracy|default:0 }}%</span>
+                        </div>
+                        <div class="metric-block1">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-value">{{ item.confidence_value|default:0 }}%</span>
+                        </div>
+                        <div class="metric-block1">
+                            <span class="metric-label">Total Calls</span>
+                            <span class="metric-value">{{ item.total_calls|intcomma }}</span>
+                        </div>
+                        <div class="metric-block1 d-none d-xl-flex">
+                            <span class="metric-label">Wins / Losses</span>
+                            <span class="metric-value">{{ item.successful_calls|intcomma }}W · {{ item.failed_calls|intcomma }}L</span>
+                        </div>
+                    </div>
+                    <footer class="result-footer">
+                        <div class="result-tags">
+                            <span class="leaderboard-pill">{{ item.category|default:'Crypto' }}</span>
+                        </div>
+                        <div class="result-actions">
+                            <a class="btn btn-outline-light btn-sm" href="/dashboard/influencer/{{ item.id }}/">
+                                <i class="fas fa-eye me-1"></i> View Profile
+                            </a>
+                            <button class="leaderboard-save-btn" data-watchlist-btn data-influencer-id="{{ item.id }}" title="Save to watchlist">
+                                <i class="far fa-star"></i>
+                            </button>
+                        </div>
+                    </footer>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div id="searchContent" class="search-placeholder text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted mb-2">Start searching the verified graph</h5>
+                <p class="text-muted mb-0">Use the filters above to discover influencers with proven performance.</p>
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="card-footer {% if not initial_search_payload.total_pages or initial_search_payload.total_pages <= 1 %}d-none{% endif %}" id="searchPagination">
+            <!-- Pagination will be inserted here by JavaScript -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ initial_search_payload|json_script:"initialSearchPayload" }}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const initialPayload = JSON.parse(document.getElementById('initialSearchPayload').textContent || '{}');
+    const searchForm = document.getElementById('searchForm');
+    const searchContent = document.getElementById('searchContent');
+    const resultsCount = document.getElementById('resultsCount');
+    const sortOptions = document.getElementById('sortOptions');
+    const sortSelect = document.getElementById('sortBy');
+    const hiddenSortField = document.getElementById('hiddenSortField');
+    const platformFilter = document.getElementById('platformFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const paginationContainer = document.getElementById('searchPagination');
+    const viewGridBtn = document.getElementById('viewGrid');
+    const viewListBtn = document.getElementById('viewList');
+    const searchInput = document.querySelector('input[name="q"]');
+    const API_ENDPOINT = "{% url 'dashboard:api_search' %}";
+    const PAGE_SIZE = 12;
+
+    let currentPage = 1;
+    let currentView = 'grid';
+    let latestResults = [];
+    let latestMeta = null;
+
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        performSearch(true, 1);
+    });
+
+    const numberFormatter = Intl.NumberFormat('en-US');
+    const escapeHtml = (value = '') => value
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const formatNumber = (value) => numberFormatter.format(value || 0);
+
+    const setActiveView = (view) => {
+        currentView = view;
+        if (viewGridBtn) viewGridBtn.classList.toggle('active', view === 'grid');
+        if (viewListBtn) viewListBtn.classList.toggle('active', view === 'list');
+        if (latestResults.length) {
+            renderResults(latestResults);
+        }
+    };
+
+    const renderLoading = () => {
+        searchContent.innerHTML = `
+            <div class="text-center py-5">
+                <div class="loading-spinner mb-3"></div>
+                <p class="text-muted mb-0">Scanning influencers...</p>
+            </div>
+        `;
+    };
+
+    const renderEmptyState = (message) => {
+        if (resultsCount) {
+            resultsCount.textContent = message;
+        }
+        searchContent.innerHTML = `
+            <div class="search-placeholder text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted mb-2">${escapeHtml(message)}</h5>
+                <p class="text-muted mb-3">Try refining your filters or submit a new influencer for review.</p>
+                <a href="{% url 'dashboard:submit_influencer' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i> Submit Influencer
+                </a>
+            </div>
+        `;
+        paginationContainer.classList.add('d-none');
+        paginationContainer.innerHTML = '';
+        if (sortOptions) sortOptions.style.display = 'none';
+    };
+
+    const renderResults = (results) => {
+        if (!results.length) {
+            renderEmptyState('No influencers found');
+            return;
+        }
+
+        const isList = currentView === 'list';
+        let html = `<div class="search-results-grid${isList ? ' list-view' : ''}">`;
+
+        results.forEach((item) => {
+            const accuracyClass = item.accuracy >= 75 ? 'metric-positive' : item.accuracy >= 50 ? 'metric-warning' : 'metric-muted';
+            const handle = item.author_name ? '@' + item.author_name : 'Not provided';
+            const avatarLetter = ((item.channel_name && item.channel_name.trim()) || (item.author_name && item.author_name.trim()) || '?').charAt(0).toUpperCase();
+            html += `
+                <article class="search-result-card">
+                    <header class="result-header">
+                        <div class="result-identity">
+                            <div class="result-avatar1">${escapeHtml(avatarLetter)}</div>
+                            <div>
+                                <a class="result-name" href="/dashboard/influencer/${item.id}/">${escapeHtml(item.channel_name || item.author_name || 'Unknown')}</a>
+                                <div class="result-handle">${escapeHtml(handle)}</div>
+                            </div>
+                        </div>
+                        <span class="platform-chip">${escapeHtml(item.platform || 'Unknown')}</span>
+                    </header>
+                    <div class="result-metrics">
+                        <div class="metric-block1">
+                            <span class="metric-label">Accuracy</span>
+                            <span class="metric-value ${accuracyClass}">${item.accuracy || 0}%</span>
+                        </div>
+                        <div class="metric-block1">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-value">${item.confidence_value || 0}%</span>
+                        </div>
+                        <div class="metric-block1">
+                            <span class="metric-label">Total Calls</span>
+                            <span class="metric-value">${formatNumber(item.total_calls)}</span>
+                        </div>
+                        <div class="metric-block1 d-none d-xl-flex">
+                            <span class="metric-label">Wins / Losses</span>
+                            <span class="metric-value">${formatNumber(item.successful_calls)}W · ${formatNumber(item.failed_calls)}L</span>
+                        </div>
+                    </div>
+                    <footer class="result-footer">
+                        <div class="result-tags">
+                            <span class="leaderboard-pill">${escapeHtml(item.category || 'Crypto')}</span>
+                        </div>
+                        <div class="result-actions">
+                            <a class="btn btn-gradient  btn-sm" href="/dashboard/influencer/${item.id}/">
+                                <i class="fas fa-eye me-1"></i> View Profile
+                            </a>
+                            <button class="leaderboard-save-btn" data-watchlist-btn data-influencer-id="${item.id}" title="Save to watchlist">
+                                <i class="far fa-star"></i>
+                            </button>
+                        </div>
+                    </footer>
+                </article>
+            `;
+        });
+
+        html += '</div>';
+        searchContent.innerHTML = html;
+        
+        // Initialize save button functionality for dynamically added content
+        initSaveButtons();
+    };
+
+    const renderPagination = (meta) => {
+        if (!paginationContainer) return;
+        if (!meta || !meta.total_pages || meta.total_pages <= 1) {
+            paginationContainer.classList.add('d-none');
+            paginationContainer.innerHTML = '';
+            return;
+        }
+
+        let html = '<nav class="search-pagination-nav"><ul class="pagination pagination-sm mb-0">';
+        const prevPage = meta.page - 1;
+        html += `
+            <li class="page-item ${meta.has_previous ? '' : 'disabled'}">
+                <a class="page-link" href="#" data-page="${prevPage}">Prev</a>
+            </li>
+        `;
+
+        const windowSize = 2;
+        const start = Math.max(1, meta.page - windowSize);
+        const end = Math.min(meta.total_pages, meta.page + windowSize);
+
+        if (start > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+            if (start > 2) {
+                html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+            }
+        }
+
+        for (let i = start; i <= end; i++) {
+            html += `
+                <li class="page-item ${i === meta.page ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `;
+        }
+
+        if (end < meta.total_pages) {
+            if (end < meta.total_pages - 1) {
+                html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+            }
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="${meta.total_pages}">${meta.total_pages}</a></li>`;
+        }
+
+        const nextPage = meta.page + 1;
+        html += `
+            <li class="page-item ${meta.has_next ? '' : 'disabled'}">
+                <a class="page-link" href="#" data-page="${nextPage}">Next</a>
+            </li>
+        `;
+        html += '</ul></nav>';
+
+        paginationContainer.innerHTML = html;
+        paginationContainer.classList.remove('d-none');
+    };
+
+    if (paginationContainer) {
+        paginationContainer.addEventListener('click', (event) => {
+            const target = event.target.closest('[data-page]');
+            if (!target) return;
+            event.preventDefault();
+            const page = parseInt(target.dataset.page, 10);
+            if (!Number.isNaN(page) && page >= 1 && (!latestMeta || page <= latestMeta.total_pages)) {
+                performSearch(true, page);
+            }
+        });
+    }
+
+    const debouncedSearch = (() => {
+        let timeout;
+        return () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const value = ((searchInput && searchInput.value) || '').trim();
+                if (!value || value.length >= 3) {
+                    performSearch(true, 1);
+                }
+            }, 400);
+        };
+    })();
+
+    if (searchInput) searchInput.addEventListener('input', debouncedSearch);
+    [platformFilter, categoryFilter].forEach((element) => {
+        if (element) {
+            element.addEventListener('change', () => performSearch(true, 1));
+        }
+    });
+
+    // Handle sort dropdown change
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            // Update hidden field to sync with visible dropdown
+            if (hiddenSortField) {
+                hiddenSortField.value = sortSelect.value;
+            }
+            performSearch(true, 1);
+        });
+    }
+
+    if (viewGridBtn) {
+        viewGridBtn.addEventListener('click', () => setActiveView('grid'));
+    }
+    if (viewListBtn) {
+        viewListBtn.addEventListener('click', () => setActiveView('list'));
+    }
+
+    async function performSearch(allowEmpty = false, page = 1) {
+        currentPage = page;
+        const formData = new FormData(searchForm);
+        const query = (formData.get('q') || '').trim();
+
+        if (!allowEmpty && !query.length) {
+            return;
+        }
+
+        // Sort parameter is now included via hidden form field
+
+        formData.set('page', currentPage);
+        formData.set('page_size', PAGE_SIZE);
+        renderLoading();
+        resultsCount.textContent = 'Scanning data...';
+
+        try {
+            const params = new URLSearchParams(formData);
+            const response = await fetch(`${API_ENDPOINT}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!response.ok) {
+                throw new Error('Search failed');
+            }
+            const data = await response.json();
+            latestResults = data.results || [];
+            latestMeta = data;
+
+            if (!latestResults.length) {
+                renderEmptyState(query ? 'No influencers found for this query' : 'No influencers to browse yet');
+                return;
+            }
+
+            const startIndex = ((data.page - 1) * data.page_size) + 1;
+            const endIndex = Math.min(startIndex + latestResults.length - 1, data.total || latestResults.length);
+            resultsCount.textContent = `Showing ${formatNumber(startIndex)} – ${formatNumber(endIndex)} of ${formatNumber(data.total)} influencers`;
+
+            renderResults(latestResults);
+            renderPagination(data);
+
+            if (sortOptions) sortOptions.style.display = 'flex';
+        } catch (error) {
+            console.error('Search error:', error);
+            renderEmptyState('Something went wrong while searching');
+        }
+    }
+
+    function hydrateInitialPayload() {
+        if (!initialPayload || !initialPayload.results) {
+            return;
+        }
+        latestResults = initialPayload.results || [];
+        latestMeta = initialPayload;
+        if (latestResults.length) {
+            const startIndex = ((initialPayload.page - 1) * initialPayload.page_size) + 1;
+            const endIndex = Math.min(startIndex + latestResults.length - 1, initialPayload.total || latestResults.length);
+            resultsCount.textContent = `Showing ${formatNumber(startIndex)} – ${formatNumber(endIndex)} of ${formatNumber(initialPayload.total)} influencers`;
+            renderResults(latestResults);
+            renderPagination(initialPayload);
+            if (sortOptions) sortOptions.style.display = 'flex';
+        }
+    }
+
+    // Initialize sort dropdown to match hidden field value
+    if (sortSelect && hiddenSortField && hiddenSortField.value) {
+        sortSelect.value = hiddenSortField.value;
+    }
+
+    hydrateInitialPayload();
+
+    if (!latestResults.length) {
+        performSearch(true, 1);
+    }
+
+    // Watchlist API functions
+    async function loadWatchlistState() {
+        try {
+            const response = await fetch('/api/v1/watchlist/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const watchlist = data.watchlist || [];
+                
+                // Update button states based on watchlist
+                document.querySelectorAll('[data-watchlist-btn]').forEach(button => {
+                    const influencerId = parseInt(button.dataset.influencerId);
+                    const watchlistItem = watchlist.find(item => item.influencer.id === influencerId);
+                    
+                    if (watchlistItem) {
+                        updateSaveButtonState(button, true);
+                        button.dataset.watchlistId = watchlistItem.id;
+                    } else {
+                        updateSaveButtonState(button, false);
+                        button.dataset.watchlistId = '';
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load watchlist state:', error);
+        }
+    }
+
+    async function addToWatchlist(influencerId) {
+        const csrfToken = getCsrfToken();
+        
+        const response = await fetch('/api/v1/watchlist/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+                'Referer': window.location.href
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                influencer_id: parseInt(influencerId)
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = 'Failed to add to watchlist';
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.error || errorData.detail || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        return data.id;
+    }
+
+    async function removeFromWatchlist(watchlistId) {
+        const csrfToken = getCsrfToken();
+        
+        const response = await fetch(`/api/v1/watchlist/${watchlistId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+                'Referer': window.location.href
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = 'Failed to remove from watchlist';
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.error || errorData.detail || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+    }
+
+    function getCsrfToken() {
+        // First try to get CSRF token from form input
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput && csrfInput.value) {
+            return csrfInput.value;
+        }
+        
+        // Fallback to cookie method
+        const csrfCookie = document.cookie.split(';')
+            .find(cookie => cookie.trim().startsWith('csrftoken='));
+        if (csrfCookie) {
+            return csrfCookie.split('=')[1];
+        }
+        
+        // Last resort: try meta tag
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        return csrfMeta ? csrfMeta.getAttribute('content') : '';
+    }
+
+    // Initialize save buttons for initial content
+    initSaveButtons();
+
+    function initSaveButtons() {
+        document.querySelectorAll('[data-watchlist-btn]').forEach(button => {
+            // Remove any existing event listeners to prevent duplicates
+            button.replaceWith(button.cloneNode(true));
+        });
+
+        // Load initial watchlist state from server
+        loadWatchlistState();
+        
+        document.querySelectorAll('[data-watchlist-btn]').forEach(button => {
+            const influencerId = button.dataset.influencerId;
+            
+            button.addEventListener('click', async () => {
+                const currentlySaved = button.classList.contains('saved');
+                const newSavedState = !currentlySaved;
+                
+                // Disable button during API call
+                button.disabled = true;
+                
+                try {
+                    if (newSavedState) {
+                        // Add to watchlist
+                        const watchlistId = await addToWatchlist(influencerId);
+                        updateSaveButtonState(button, true);
+                        button.dataset.watchlistId = watchlistId;
+                        showToast('Added to watchlist');
+                    } else {
+                        // Remove from watchlist
+                        const watchlistId = button.dataset.watchlistId;
+                        if (watchlistId) {
+                            await removeFromWatchlist(watchlistId);
+                            updateSaveButtonState(button, false);
+                            button.dataset.watchlistId = '';
+                            showToast('Removed from watchlist');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Watchlist operation failed:', error);
+                    showToast('Operation failed. Please try again.', 'error');
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+    }
+
+    function updateSaveButtonState(button, isSaved) {
+        const icon = button.querySelector('i');
+        if (isSaved) {
+            button.classList.add('saved');
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            button.title = 'Remove from watchlist';
+        } else {
+            button.classList.remove('saved');
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            button.title = 'Save to watchlist';
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        const isError = type === 'error';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${isError ? '#dc3545' : 'var(--bg-secondary)'};
+            color: ${isError ? '#fff' : 'var(--text-primary)'};
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid ${isError ? '#b02a37' : 'rgba(255, 255, 255, 0.1)'};
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            font-size: 0.875rem;
+            animation: slideInRight 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, isError ? 4000 : 3000);
+    }
+});
+
+function viewInfluencer(id) {
+    window.location.href = `/dashboard/influencer/${id}/`;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+
+{% block title %}Analytics - KillShill{% endblock %}
+
+{% block page_title %}Analytics{% endblock %}
+
+{% block page_subtitle %}
+<p class="page-subtitle">Live performance data for every verified trading signal.</p>
+{% endblock %}
+
+{% block content %}
+{% include 'dashboard/partials/analytics_content.html' %}
+{% endblock %}
+
+{% block extra_js %}
+{% include 'dashboard/partials/analytics_scripts.html' %}
+{% endblock %}

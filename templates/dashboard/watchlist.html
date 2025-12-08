@@ -1,0 +1,441 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Watchlist - Killshill{% endblock %}
+
+{% block content %}
+<div class="dashboard-watchlist">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="fas fa-star me-2 text-warning"></i>My Watchlist</h2>
+        <p class="text-muted">Track performance of saved influencers and see their latest calls.</p>
+    </div>
+    <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addInfluencerModal">
+        <i class="fas fa-plus me-2"></i>Add Influencer
+    </button>
+    {% if error %}
+    <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+</div>
+
+<!-- Watchlist Stats -->
+<div class="row mb-4 g-3">
+    <div class="col-lg-3 col-md-6">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-white-50">Followed</small>
+                        <h3 class="mb-0">{{ total_followed|default:0 }}</h3>
+                    </div>
+                    <i class="fas fa-users fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-white-50">Avg Accuracy</small>
+                        <h3 class="mb-0">{{ avg_accuracy|default:0 }}%</h3>
+                    </div>
+                    <i class="fas fa-bullseye fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-white-50">Active Calls</small>
+                        <h3 class="mb-0">{{ active_calls_count|default:0 }}</h3>
+                    </div>
+                    <i class="fas fa-broadcast-tower fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-white-50">Avg Return</small>
+                        <h3 class="mb-0">{{ potential_value|default:0 }}%</h3>
+                    </div>
+                        <i class="fas fa-chart-line fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small text-muted mb-1">Platform</label>
+                <select class="form-select" id="platformFilter" onchange="filterWatchlist()">
+                    <option value="all">All Platforms</option>
+                    <option value="telegram">Telegram</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small text-muted mb-1">Status</label>
+                <select class="form-select" id="statusFilter" onchange="filterWatchlist()">
+                    <option value="all">All Status</option>
+                    <option value="active">Active Calls</option>
+                    <option value="high_accuracy">High Accuracy &gt; 80%</option>
+                    <option value="new_calls">New Signals &lt; 24h</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small text-muted mb-1">Sort By</label>
+                <select class="form-select" id="sortBy" onchange="filterWatchlist()">
+                    <option value="accuracy">Accuracy</option>
+                    <option value="recent">Recent Activity</option>
+                    <option value="calls">Total Calls</option>
+                    <option value="name">Name</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small text-muted mb-1">Search</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchWatchlist" placeholder="Search saved influencers">
+                    <button class="btn btn-outline-primary" type="button" onclick="filterWatchlist()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Watchlist Cards -->
+<div class="watchlist-grid" id="watchlist-grid">
+    {% if watchlist_entries %}
+        {% for item in watchlist_entries %}
+        <div class="watchlist-card"
+             data-platform="{{ item.platform|lower }}"
+             data-accuracy="{{ item.accuracy|default:0 }}"
+             data-active="{{ item.active_calls|default:0 }}"
+             data-name="{{ item.channel_name|lower }}"
+             data-handle="{{ item.author_name|default:''|lower }}"
+             data-last-hours="{{ item.last_active_hours|default:'999' }}"
+             data-total-calls="{{ item.total_calls|default:0 }}">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3 gap-2 watchlist-header">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 50px; height: 50px; font-size: 18px; font-weight: bold;">
+                                {{ item.avatar }}
+                            </div>
+                            <div>
+                                <h6 class="watchlist-name">{{ item.channel_name }}</h6>
+                                {% if item.author_name %}
+                                <small class="text-muted watchlist-handle">@{{ item.author_name }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="watchlist-actions">
+                            <button class="watchlist-saved-btn" data-watchlist-btn data-influencer-id="{{ item.influencer_id }}" data-watchlist-id="{{ item.watchlist_id }}">
+                                <i class="fas fa-star"></i>Saved
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-secondary text-capitalize me-2">{{ item.platform }}</span>
+                        {% if item.asset_symbol %}
+                        <span class="badge bg-dark text-uppercase">{{ item.asset_symbol }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="fw-bold h5 {% if item.accuracy >= 75 %}text-success{% elif item.accuracy <= 50 %}text-danger{% else %}text-warning{% endif %}">
+                                {{ item.accuracy|default:0 }}%
+                            </div>
+                            <small class="text-muted">Accuracy</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold h5">{{ item.total_calls }}</div>
+                            <small class="text-muted">Total Calls</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold h5">{{ item.active_calls }}</div>
+                            <small class="text-muted">Active</small>
+                        </div>
+                    </div>
+
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{ item.accuracy|default:0 }}%"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>{{ item.last_active_display }}
+                        </small>
+                        {% if item.avg_return %}
+                        <span class="badge bg-info">{{ item.avg_return }}% avg return</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center text-muted py-5 border border-dashed rounded">
+                <i class="fas fa-star fa-3x mb-3 text-warning"></i>
+                <h5>No influencers in your watchlist yet</h5>
+                <p>Add performers from the leaderboard or search to track their performance here.</p>
+                <button class="btn btn-gradient mt-3" data-bs-toggle="modal" data-bs-target="#addInfluencerModal">
+                    <i class="fas fa-plus me-2"></i>Add Influencer
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Add Influencer Modal -->
+<div class="modal fade" id="addInfluencerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Influencer to Watchlist</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="influencerSearch" class="form-label">Search Influencers</label>
+                    <input type="text" class="form-control" id="influencerSearch" placeholder="Search by name or handle">
+                </div>
+                <div id="searchResults" class="watchlist-search-results"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ watchlist_entries|json_script:"watchlist-json" }}
+{{ watchlist_suggestions|json_script:"watchlist-suggestions-json" }}
+<script>
+const watchlistDataElement = document.getElementById('watchlist-json');
+const watchlistData = watchlistDataElement ? JSON.parse(watchlistDataElement.textContent) : [];
+const watchlistIdSet = new Set(watchlistData.map(item => item.influencer_id));
+const suggestionElement = document.getElementById('watchlist-suggestions-json');
+const suggestionData = suggestionElement ? JSON.parse(suggestionElement.textContent) : [];
+
+function filterWatchlist() {
+    const platformVal = document.getElementById('platformFilter').value.toLowerCase();
+    const statusVal = document.getElementById('statusFilter').value;
+    const searchVal = document.getElementById('searchWatchlist').value.trim().toLowerCase();
+    const sortVal = document.getElementById('sortBy').value;
+
+    document.querySelectorAll('.watchlist-card').forEach(card => {
+        const platform = card.dataset.platform || '';
+        const accuracy = parseFloat(card.dataset.accuracy || '0');
+        const active = parseInt(card.dataset.active || '0', 10);
+        const name = card.dataset.name || '';
+        const handle = card.dataset.handle || '';
+        const lastHours = parseFloat(card.dataset.lastHours || '999');
+
+        const matchesPlatform = platformVal === 'all' || platform === platformVal;
+        let matchesStatus = true;
+        if (statusVal === 'active') {
+            matchesStatus = active > 0;
+        } else if (statusVal === 'high_accuracy') {
+            matchesStatus = accuracy >= 80;
+        } else if (statusVal === 'new_calls') {
+            matchesStatus = lastHours <= 24;
+        }
+        const matchesSearch = !searchVal || name.includes(searchVal) || handle.includes(searchVal);
+        card.style.display = matchesPlatform && matchesStatus && matchesSearch ? '' : 'none';
+    });
+
+    applyWatchlistSort(sortVal);
+}
+
+function applyWatchlistSort(sortVal) {
+    const grid = document.getElementById('watchlist-grid');
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll('.watchlist-card')).filter(card => card.style.display !== 'none');
+
+    cards.sort((a, b) => {
+        const accuracyA = parseFloat(a.dataset.accuracy || '0');
+        const accuracyB = parseFloat(b.dataset.accuracy || '0');
+        const activeA = parseInt(a.dataset.active || '0', 10);
+        const activeB = parseInt(b.dataset.active || '0', 10);
+        const callsA = parseInt(a.dataset.totalCalls || '0', 10);
+        const callsB = parseInt(b.dataset.totalCalls || '0', 10);
+        const nameA = a.dataset.name || '';
+        const nameB = b.dataset.name || '';
+        const hoursA = parseFloat(a.dataset.lastHours || '999');
+        const hoursB = parseFloat(b.dataset.lastHours || '999');
+
+        switch (sortVal) {
+            case 'accuracy':
+                return accuracyB - accuracyA;
+            case 'recent':
+                return hoursA - hoursB;
+            case 'calls':
+                return callsB - callsA;
+            case 'name':
+                return nameA.localeCompare(nameB);
+            default:
+                return 0;
+        }
+    });
+
+    cards.forEach(card => grid.appendChild(card));
+}
+
+const searchInput = document.getElementById('influencerSearch');
+const searchResultsContainer = document.getElementById('searchResults');
+let searchTimeout;
+
+function renderSearchPlaceholder(message = 'Start typing to search for influencers') {
+    if (!searchResultsContainer) return;
+    searchResultsContainer.innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <p class="mb-0">${message}</p>
+        </div>
+    `;
+}
+
+function renderSearchResults(items, heading) {
+    if (!searchResultsContainer) return;
+
+    if (!items || !items.length) {
+        renderSearchPlaceholder('No influencers found. Try another keyword.');
+        return;
+    }
+
+    searchResultsContainer.innerHTML = `
+        ${heading ? `<div class="text-muted small mb-2">${heading}</div>` : ''}
+        <div class="list-group">
+            ${items.map(item => {
+                const saved = watchlistIdSet.has(item.id);
+                return `
+                    <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center text-white">
+                        <div>
+                            <div class="fw-semibold">${item.channel_name || 'Unknown'}</div>
+                            <small class="text-muted">${item.accuracy || 0}% accuracy • ${item.total_calls || 0} calls</small>
+                        </div>
+                        <button class="btn btn-sm ${saved ? 'btn-outline-secondary' : 'btn-primary'}"
+                                ${saved ? 'disabled' : ''}
+                                onclick="addInfluencerFromModal(${item.id}, this)">
+                            ${saved ? '<i class="fas fa-check me-1"></i>Saved' : '<i class="fas fa-plus me-1"></i>Add'}
+                        </button>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function filterLocalSuggestions(query) {
+    if (!suggestionData.length) return [];
+    const normalized = query.toLowerCase();
+    return suggestionData.filter(item => {
+        return (item.channel_name || '').toLowerCase().includes(normalized) ||
+               (item.author_name || '').toLowerCase().includes(normalized);
+    }).slice(0, 6);
+}
+
+async function executeWatchlistSearch(query) {
+    if (!searchResultsContainer) return;
+    if (!query || query.length < 2) {
+        if (suggestionData.length) {
+            renderSearchResults(suggestionData.slice(0, 6), 'Suggested influencers');
+        } else {
+            renderSearchPlaceholder();
+        }
+        return;
+    }
+
+    searchResultsContainer.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-2"></div>
+            <p class="text-muted mb-0">Searching...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/api/v1/search/?q=${encodeURIComponent(query)}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await response.json();
+        const results = data.results || [];
+
+        if (!results.length) {
+            const fallback = filterLocalSuggestions(query);
+            if (fallback.length) {
+                renderSearchResults(fallback, 'No API matches. Showing suggestions:');
+                return;
+            }
+            renderSearchPlaceholder('No influencers found. Try another keyword.');
+            return;
+        }
+
+        renderSearchResults(results);
+    } catch (error) {
+        console.error('Watchlist search error', error);
+        const fallback = filterLocalSuggestions(query);
+        if (fallback.length) {
+            renderSearchResults(fallback, 'Unable to reach search API. Showing suggestions:');
+        } else {
+            renderSearchPlaceholder('Unable to search right now.');
+        }
+    }
+}
+
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => executeWatchlistSearch(searchInput.value.trim()), 350);
+    });
+    if (suggestionData.length) {
+        renderSearchResults(suggestionData.slice(0, 6), 'Suggested influencers');
+    } else {
+        renderSearchPlaceholder();
+    }
+}
+
+async function addInfluencerFromModal(influencerId, button) {
+    if (typeof addToWatchlist !== 'function') return;
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    await addToWatchlist(influencerId);
+    button.innerHTML = '<i class="fas fa-check"></i> Added';
+    setTimeout(() => window.location.reload(), 700);
+}
+
+const watchlistSearchField = document.getElementById('searchWatchlist');
+if (watchlistSearchField) {
+    watchlistSearchField.addEventListener('input', () => filterWatchlist());
+    watchlistSearchField.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+            filterWatchlist();
+        }
+    });
+}
+
+filterWatchlist();
+</script>
+{% endblock %}

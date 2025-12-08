@@ -1,0 +1,222 @@
+{% load humanize %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="mb-1"><i class="fas fa-chart-line text-info me-2"></i>Analytics Dashboard</h2>
+        <p class="text-muted mb-0">Tracking {{ total_signals|default:0 }} signals across {{ active_influencers|default:0 }} influencers.</p>
+        <span class="badge bg-success mt-2">
+            <i class="fas fa-broadcast-tower me-1"></i>{{ active_signals|default:0 }} active signals
+        </span>
+    </div>
+    <form method="get"
+          class="d-flex align-items-center gap-2"
+          action="{% url 'dashboard:analytics' %}"
+          {% if embed_mode %}data-embed-form="analytics"{% endif %}>
+        <label for="timeframe" class="text-muted small mb-0">Timeframe</label>
+        <select class="form-select" name="timeframe" id="timeframe"
+                {% if embed_mode %}data-trigger-submit="true"{% else %}onchange="this.form.submit()"{% endif %}>
+            <option value="7d" {% if timeframe == '7d' %}selected{% endif %}>Last 7 Days</option>
+            <option value="30d" {% if timeframe == '30d' %}selected{% endif %}>Last 30 Days</option>
+            <option value="90d" {% if timeframe == '90d' %}selected{% endif %}>Last 90 Days</option>
+            <option value="1y" {% if timeframe == '1y' %}selected{% endif %}>Last Year</option>
+        </select>
+        {% if embed_mode %}
+        <input type="hidden" name="embed" value="1">
+        {% endif %}
+        <button class="btn btn-gradient btn-sm" type="submit">
+            Apply
+        </button>
+    </form>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Success Rate</h6>
+                        <h3 class="mb-0">{{ success_rate|default:0 }}%</h3>
+                        <small class="{% if success_rate_change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas {% if success_rate_change >= 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %} me-1"></i>
+                            {{ success_rate_change|default:0 }}% vs prior period
+                        </small>
+                    </div>
+                    <span class="text-success"><i class="fas fa-bullseye fa-2x"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Signals</h6>
+                        <h3 class="mb-0">{{ total_signals|default:0|intcomma }}</h3>
+                        <small class="text-muted">Tracked in selected window</small>
+                    </div>
+                    <span class="text-primary"><i class="fas fa-wave-square fa-2x"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Active Influencers</h6>
+                        <h3 class="mb-0">{{ active_influencers|default:0 }}</h3>
+                        <small class="text-muted">Posted at least one signal</small>
+                    </div>
+                    <span class="text-warning"><i class="fas fa-users fa-2x"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Avg Risk / Reward</h6>
+                        <h3 class="mb-0">{{ avg_risk_reward|default:'0.0' }}x</h3>
+                        <small class="text-muted">Across resolved wins</small>
+                    </div>
+                    <span class="text-info"><i class="fas fa-balance-scale fa-2x"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Performance Trends</h5>
+                <small class="text-muted">Success rate vs signal volume</small>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceTrendChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Platform Breakdown</h5>
+                <small class="text-muted">Top sources</small>
+            </div>
+            <div class="card-body">
+                <canvas id="platformComparisonChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category / Snapshot -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Success Rate by Asset Type</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="assetTypeChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Asset Snapshot</h5>
+            </div>
+            <div class="card-body">
+                {% if category_chart_data %}
+                    <div class="list-group list-group-flush">
+                        {% for category in category_chart_data %}
+                        <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ category.label }}</strong>
+                                <small class="d-block text-muted">{{ category.total }} signals</small>
+                            </div>
+                            <span class="badge bg-secondary">{{ category.accuracy }}%</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No categorized signals in this timeframe.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performers -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">Top Performers</h5>
+            <small class="text-muted">Ranked by win rate (min 5 calls in timeframe)</small>
+        </div>
+        {% if best_performer %}
+        <span class="badge bg-primary">
+            <i class="fas fa-award me-1"></i>
+            {{ best_performer.name }} &middot; {{ best_performer.accuracy }}%
+        </span>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Influencer</th>
+                        <th>Platform</th>
+                        <th>Accuracy</th>
+                        <th>Total Calls</th>
+                        <th>Wins</th>
+                        <th>Losses</th>
+                        <th>Avg R/R</th>
+                        <th>Resolved %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for performer in top_performers %}
+                    <tr>
+                        <td><span class="badge bg-primary">{{ performer.rank }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle bg-background text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
+                                    {{ performer.name|default:'?'|first|upper }}
+                                </div>
+                                <div>
+                                    <strong>{{ performer.name }}</strong>
+                                    {% if performer.handle %}
+                                    <small class="d-block text-muted">@{{ performer.handle }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-muted">{{ performer.platform }}</td>
+                        <td><span class="text-success fw-semibold">{{ performer.accuracy }}%</span></td>
+                        <td>{{ performer.total_calls }}</td>
+                        <td>{{ performer.wins }}</td>
+                        <td>{{ performer.losses }}</td>
+                        <td>{{ performer.avg_rr }}x</td>
+                        <td>{{ performer.reliability }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">Not enough data for this timeframe.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

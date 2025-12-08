@@ -1,0 +1,61 @@
+/* Unified Price Badge Styling - Clean and Professional */
+
+.price-badge {
+    display: inline-block !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    margin-left: 0.5rem !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    white-space: nowrap !important;
+    min-width: 40px !important;
+    text-align: center !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+}
+
+.price-badge.actual {
+    background: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.price-badge.assumed {
+    background: #f59e0b !important;
+    color: #ffffff !important;
+}
+
+/* Table context adjustments */
+td .price-badge,
+.table .price-badge {
+    margin-top: 2px !important;
+}
+
+/* Signal detail page context */
+.data-value .price-badge {
+    margin-left: 0.5rem !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .price-badge {
+        font-size: 0.65rem !important;
+        padding: 1px 5px !important;
+        margin-left: 0.25rem !important;
+        min-width: 35px !important;
+    }
+    
+    .data-value .price-badge {
+        margin-left: 0 !important;
+        margin-top: 0.25rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .price-badge {
+        font-size: 0.6rem !important;
+        padding: 1px 4px !important;
+        min-width: 30px !important;
+    }
+}

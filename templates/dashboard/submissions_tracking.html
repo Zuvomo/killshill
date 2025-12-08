@@ -1,0 +1,884 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Submission Tracking - KillShill{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-indicator.processing {
+        background-color: var(--warning);
+    }
+    
+    .status-indicator.approved {
+        background-color: var(--success);
+        animation: none;
+    }
+    
+    .status-indicator.rejected {
+        background-color: var(--danger);
+        animation: none;
+    }
+    
+    .status-indicator.pending {
+        background-color: var(--info);
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .submission-card {
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .submission-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+    
+    .submission-card.processing::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--warning), var(--primary), var(--warning));
+        background-size: 200% 100%;
+        animation: loading-bar 2s infinite;
+    }
+    
+    @keyframes loading-bar {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .submission-card.approved::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--success);
+    }
+    
+    .submission-card.rejected::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--danger);
+    }
+    
+    .verification-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .verification-step {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .verification-step.completed {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--success);
+        color: var(--success);
+    }
+    
+    .verification-step.processing {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: var(--warning);
+        color: var(--warning);
+    }
+    
+    .verification-step.failed {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+    
+    .step-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .step-title {
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .step-status {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+    
+    .score-display {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: white;
+        border-radius: var(--radius-xl);
+        padding: 1rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .score-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+    
+    .score-label {
+        opacity: 0.9;
+        font-size: 0.875rem;
+    }
+    
+    .score-breakdown {
+        margin-top: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-lg);
+        padding: 0.75rem;
+    }
+    
+    .score-item {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .score-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding: 0.25rem;
+        background: var(--gray-100);
+        border-radius: var(--radius-lg);
+    }
+    
+    .filter-tab {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+    
+    .filter-tab.active {
+        background: white;
+        box-shadow: var(--shadow-sm);
+        color: var(--primary);
+    }
+    
+    .filter-tab:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .real-time-indicator {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: var(--success);
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-lg);
+        font-size: 0.875rem;
+        font-weight: 500;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    }
+    
+    .real-time-indicator.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .processing-queue {
+        background: linear-gradient(135deg, var(--info), #0891b2);
+        color: white;
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .queue-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .queue-stat {
+        text-align: center;
+    }
+    
+    .queue-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .queue-stat-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+    
+    .auto-refresh-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--gray-600);
+        font-size: 0.875rem;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--gray-300);
+        transition: 0.3s;
+        border-radius: 24px;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+        background-color: var(--primary);
+    }
+    
+    input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <h1 class="page-title">
+        <i class="fas fa-tasks text-primary me-2"></i>
+        Submission Tracking
+    </h1>
+    <p class="page-description">Monitor auto-approval processing and manage submissions in real-time</p>
+</div>
+
+<!-- Processing Queue Overview -->
+<div class="processing-queue">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h5 class="mb-1">Auto-Approval Processing Queue</h5>
+            <p class="mb-0 opacity-90">Real-time monitoring of submission verification</p>
+        </div>
+        <div class="auto-refresh-toggle">
+            <span>Auto-refresh</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="autoRefreshToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="queue-stats">
+        <div class="queue-stat">
+            <div class="queue-stat-value" id="totalInQueue">0</div>
+            <div class="queue-stat-label">In Queue</div>
+        </div>
+        <div class="queue-stat">
+            <div class="queue-stat-value" id="currentlyProcessing">0</div>
+            <div class="queue-stat-label">Processing</div>
+        </div>
+        <div class="queue-stat">
+            <div class="queue-stat-value" id="processedToday">0</div>
+            <div class="queue-stat-label">Today</div>
+        </div>
+        <div class="queue-stat">
+            <div class="queue-stat-value" id="averageTime">0s</div>
+            <div class="queue-stat-label">Avg Time</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all">
+        All Submissions
+        <span class="badge badge-primary ms-2" id="countAll">0</span>
+    </button>
+    <button class="filter-tab" data-filter="processing">
+        Processing
+        <span class="badge badge-warning ms-2" id="countProcessing">0</span>
+    </button>
+    <button class="filter-tab" data-filter="approved">
+        Approved
+        <span class="badge badge-success ms-2" id="countApproved">0</span>
+    </button>
+    <button class="filter-tab" data-filter="pending">
+        Pending Review
+        <span class="badge badge-info ms-2" id="countPending">0</span>
+    </button>
+    <button class="filter-tab" data-filter="rejected">
+        Rejected
+        <span class="badge badge-danger ms-2" id="countRejected">0</span>
+    </button>
+</div>
+
+<!-- Submissions List -->
+<div id="submissionsContainer">
+    <!-- Submissions will be loaded here -->
+    <div class="text-center py-5">
+        <div class="loading-skeleton" style="height: 200px; border-radius: 12px;"></div>
+    </div>
+</div>
+
+<!-- Real-time Update Indicator -->
+<div class="real-time-indicator" id="updateIndicator">
+    <i class="fas fa-sync-alt me-2"></i>
+    Data updated
+</div>
+
+<!-- Submission Detail Modal -->
+<div class="modal fade" id="submissionDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submission Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="submissionDetailContent">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="reprocessBtn">
+                    <i class="fas fa-redo"></i> Reprocess
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let autoRefresh = true;
+let refreshInterval;
+let currentFilter = 'all';
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    setupFilterTabs();
+    setupAutoRefresh();
+    loadSubmissions();
+    startAutoRefresh();
+});
+
+function setupFilterTabs() {
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update filter
+            currentFilter = this.dataset.filter;
+            
+            // Reload submissions
+            loadSubmissions();
+        });
+    });
+}
+
+function setupAutoRefresh() {
+    const toggle = document.getElementById('autoRefreshToggle');
+    toggle.addEventListener('change', function() {
+        autoRefresh = this.checked;
+        if (autoRefresh) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    });
+}
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    
+    refreshInterval = setInterval(() => {
+        if (autoRefresh) {
+            loadSubmissions();
+            updateQueueStats();
+        }
+    }, 5000); // Refresh every 5 seconds
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+}
+
+async function loadSubmissions() {
+    const container = document.getElementById('submissionsContainer');
+    
+    try {
+        const response = await fetch(`/api/v1/submissions/?filter=${currentFilter}&page_size=20`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch submissions');
+        }
+        
+        const data = await response.json();
+        
+        // Update filter counts
+        updateFilterCounts(data.counts || {});
+        
+        // Render submissions
+        renderSubmissions(data.results || []);
+        
+        // Show update indicator
+        showUpdateIndicator();
+        
+    } catch (error) {
+        console.error('Error loading submissions:', error);
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="text-danger">
+                    <i class="fas fa-exclamation-triangle mb-2" style="font-size: 2rem;"></i>
+                    <div>Error loading submissions</div>
+                    <button class="btn btn-outline-primary btn-sm mt-2" onclick="loadSubmissions()">
+                        <i class="fas fa-redo"></i> Retry
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function updateFilterCounts(counts) {
+    document.getElementById('countAll').textContent = counts.all || 0;
+    document.getElementById('countProcessing').textContent = counts.processing || 0;
+    document.getElementById('countApproved').textContent = counts.approved || 0;
+    document.getElementById('countPending').textContent = counts.pending || 0;
+    document.getElementById('countRejected').textContent = counts.rejected || 0;
+}
+
+function renderSubmissions(submissions) {
+    const container = document.getElementById('submissionsContainer');
+    
+    if (submissions.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <div class="empty-state-title">No submissions found</div>
+                    <div class="empty-state-description">
+                        ${currentFilter === 'all' ? 'No submissions have been made yet' : `No ${currentFilter} submissions`}
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = submissions.map(submission => renderSubmissionCard(submission)).join('');
+}
+
+function renderSubmissionCard(submission) {
+    const statusClass = getStatusClass(submission.status, submission.processing_status);
+    const statusBadge = getStatusBadge(submission.status, submission.auto_approved, submission.processing_status);
+    const platformIcon = getPlatformIcon(submission.platform);
+    const verificationSteps = renderVerificationSteps(submission);
+    const scoreDisplay = renderScoreDisplay(submission);
+    
+    return `
+        <div class="submission-card ${statusClass}" data-id="${submission.id}">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar me-3" style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        ${(submission.channel_name || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <h6 class="mb-1">${submission.channel_name || 'Unknown Channel'}</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge badge-primary">
+                                ${platformIcon}
+                                ${submission.platform}
+                            </span>
+                            <span class="text-muted">${formatNumber(submission.follower_count)} followers</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="mb-2">${statusBadge}</div>
+                    <small class="text-muted">${getTimeAgo(submission.created_at)}</small>
+                </div>
+            </div>
+            
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <div class="verification-steps">
+                        ${verificationSteps}
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    ${scoreDisplay}
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">
+                    Submitted by ${submission.submitted_by || 'Unknown'} • ID: ${submission.id}
+                </div>
+                <div class="d-flex gap-2">
+                    ${submission.status === 'pending' && !submission.processing_status ? `
+                        <button class="btn btn-outline-primary btn-sm" onclick="processSubmission(${submission.id})">
+                            <i class="fas fa-play"></i> Process
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-outline-secondary btn-sm" onclick="viewSubmissionDetail(${submission.id})">
+                        <i class="fas fa-eye"></i> Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getStatusClass(status, processingStatus) {
+    if (processingStatus === 'processing') return 'processing';
+    if (status === 'approved') return 'approved';
+    if (status === 'rejected') return 'rejected';
+    return 'pending';
+}
+
+function getStatusBadge(status, autoApproved, processingStatus) {
+    if (processingStatus === 'processing') {
+        return '<span class="badge badge-warning"><span class="status-indicator processing"></span>Processing</span>';
+    }
+    
+    if (status === 'approved') {
+        if (autoApproved) {
+            return '<span class="badge badge-success"><span class="status-indicator approved"></span>Auto-Approved</span>';
+        } else {
+            return '<span class="badge badge-success"><span class="status-indicator approved"></span>Manual Approved</span>';
+        }
+    }
+    
+    if (status === 'rejected') {
+        return '<span class="badge badge-danger"><span class="status-indicator rejected"></span>Rejected</span>';
+    }
+    
+    return '<span class="badge badge-info"><span class="status-indicator pending"></span>Pending Review</span>';
+}
+
+function getPlatformIcon(platform) {
+    const icons = {
+        'Telegram': '<i class="fab fa-telegram"></i>',
+        'Twitter': '<i class="fab fa-twitter"></i>',
+        'TikTok': '<i class="fab fa-tiktok"></i>',
+        'YouTube': '<i class="fab fa-youtube"></i>',
+        'Instagram': '<i class="fab fa-instagram"></i>',
+        'Discord': '<i class="fab fa-discord"></i>'
+    };
+    return icons[platform] || '<i class="fas fa-globe"></i>';
+}
+
+function renderVerificationSteps(submission) {
+    const steps = [
+        {
+            title: 'URL Validation',
+            status: submission.verification_steps?.url_validation || 'pending',
+            icon: 'fas fa-link'
+        },
+        {
+            title: 'Platform Check',
+            status: submission.verification_steps?.platform_check || 'pending',
+            icon: 'fas fa-shield-check'
+        },
+        {
+            title: 'Follower Verification',
+            status: submission.verification_steps?.follower_verification || 'pending',
+            icon: 'fas fa-users'
+        },
+        {
+            title: 'Quality Score',
+            status: submission.verification_steps?.quality_score || 'pending',
+            icon: 'fas fa-star'
+        }
+    ];
+    
+    return steps.map(step => `
+        <div class="verification-step ${step.status}">
+            <i class="${step.icon} step-icon"></i>
+            <div class="step-title">${step.title}</div>
+            <div class="step-status">${step.status.charAt(0).toUpperCase() + step.status.slice(1)}</div>
+        </div>
+    `).join('');
+}
+
+function renderScoreDisplay(submission) {
+    if (!submission.approval_score && submission.approval_score !== 0) {
+        return `
+            <div class="score-display" style="background: var(--gray-400);">
+                <div class="score-value">-</div>
+                <div class="score-label">No Score Yet</div>
+            </div>
+        `;
+    }
+    
+    const score = submission.approval_score;
+    let bgColor = 'var(--danger)';
+    let label = 'Low Score';
+    
+    if (score >= 70) {
+        bgColor = 'var(--success)';
+        label = 'High Score';
+    } else if (score >= 40) {
+        bgColor = 'var(--warning)';
+        label = 'Medium Score';
+    }
+    
+    return `
+        <div class="score-display" style="background: ${bgColor};">
+            <div class="score-value">${score}</div>
+            <div class="score-label">${label}</div>
+            ${submission.score_breakdown ? `
+                <div class="score-breakdown">
+                    <div class="score-item">
+                        <span>Platform Verification:</span>
+                        <span>${submission.score_breakdown.platform_verification || 0}</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Follower Accuracy:</span>
+                        <span>${submission.score_breakdown.follower_accuracy || 0}</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Account Age:</span>
+                        <span>${submission.score_breakdown.account_age || 0}</span>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+async function updateQueueStats() {
+    try {
+        const response = await fetch('/api/v1/submissions/queue-stats/');
+        if (response.ok) {
+            const stats = await response.json();
+            
+            document.getElementById('totalInQueue').textContent = stats.total_in_queue || 0;
+            document.getElementById('currentlyProcessing').textContent = stats.currently_processing || 0;
+            document.getElementById('processedToday').textContent = stats.processed_today || 0;
+            document.getElementById('averageTime').textContent = `${stats.average_time || 0}s`;
+        }
+    } catch (error) {
+        console.error('Error updating queue stats:', error);
+    }
+}
+
+async function processSubmission(submissionId) {
+    try {
+        const response = await fetch(`/api/v1/submissions/${submissionId}/process/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('Processing started', 'success');
+            // Reload after short delay
+            setTimeout(() => loadSubmissions(), 1000);
+        } else {
+            showNotification('Failed to start processing', 'error');
+        }
+    } catch (error) {
+        console.error('Error processing submission:', error);
+        showNotification('Error processing submission', 'error');
+    }
+}
+
+async function viewSubmissionDetail(submissionId) {
+    const modal = new bootstrap.Modal(document.getElementById('submissionDetailModal'));
+    const content = document.getElementById('submissionDetailContent');
+    
+    try {
+        content.innerHTML = '<div class="text-center py-4"><div class="spinner-border"></div></div>';
+        modal.show();
+        
+        const response = await fetch(`/api/v1/submissions/${submissionId}/`);
+        if (response.ok) {
+            const submission = await response.json();
+            content.innerHTML = renderSubmissionDetail(submission);
+        } else {
+            content.innerHTML = '<div class="alert alert-danger">Failed to load submission details</div>';
+        }
+    } catch (error) {
+        console.error('Error loading submission detail:', error);
+        content.innerHTML = '<div class="alert alert-danger">Error loading submission details</div>';
+    }
+}
+
+function renderSubmissionDetail(submission) {
+    return `
+        <div class="row g-3">
+            <div class="col-md-6">
+                <h6>Basic Information</h6>
+                <table class="table table-sm">
+                    <tr><td>Channel Name:</td><td>${submission.channel_name}</td></tr>
+                    <tr><td>Platform:</td><td>${submission.platform}</td></tr>
+                    <tr><td>URL:</td><td><a href="${submission.url}" target="_blank">${submission.url}</a></td></tr>
+                    <tr><td>Followers:</td><td>${formatNumber(submission.follower_count)}</td></tr>
+                    <tr><td>Category:</td><td>${submission.category}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Processing Status</h6>
+                <table class="table table-sm">
+                    <tr><td>Status:</td><td>${getStatusBadge(submission.status, submission.auto_approved, submission.processing_status)}</td></tr>
+                    <tr><td>Approval Score:</td><td>${submission.approval_score || 'N/A'}</td></tr>
+                    <tr><td>Submitted:</td><td>${getTimeAgo(submission.created_at)}</td></tr>
+                    <tr><td>Last Updated:</td><td>${getTimeAgo(submission.updated_at)}</td></tr>
+                </table>
+            </div>
+        </div>
+        
+        ${submission.verification_logs ? `
+            <h6 class="mt-3">Verification Logs</h6>
+            <div class="bg-light p-3 rounded">
+                <pre class="mb-0" style="font-size: 0.75rem; white-space: pre-wrap;">${submission.verification_logs}</pre>
+            </div>
+        ` : ''}
+        
+        ${submission.rejection_reason ? `
+            <h6 class="mt-3">Rejection Reason</h6>
+            <div class="alert alert-danger">${submission.rejection_reason}</div>
+        ` : ''}
+    `;
+}
+
+function showUpdateIndicator() {
+    const indicator = document.getElementById('updateIndicator');
+    indicator.classList.add('show');
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 2000);
+}
+
+function showNotification(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 5000);
+}
+
+function formatNumber(num) {
+    if (!num) return '0';
+    return parseInt(num).toLocaleString();
+}
+
+function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
+    if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
+    return Math.floor(diffInSeconds / 86400) + 'd ago';
+}
+
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    stopAutoRefresh();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,256 @@
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+
+{% block title %}Leaderboard - KillShill{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active" aria-current="page">Leaderboard</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+    <h1 class="page-title">
+        <i class="fas fa-trophy text-warning me-2"></i>
+        Influencer Leaderboard
+    </h1>
+    <p class="page-description">Track verified KOL performance with accuracy, risk, and time-to-target metrics.</p>
+</div>
+
+<div class="leaderboard-page">
+    <div class="card leaderboard-filters-card mb-4">
+        <form method="get" class="leaderboard-filters">
+            <div class="filter-field">
+                <label class="text-muted small">Category</label>
+                <select name="category" class="leaderboard-select">
+                    <option value="all" {% if selected_category|default:'all'|lower == 'all' %}selected{% endif %}>All</option>
+                    <option value="crypto" {% if selected_category|default:'all'|lower == 'crypto' %}selected{% endif %}>Crypto</option>
+                    <option value="stocks" {% if selected_category|default:'all'|lower == 'stocks' %}selected{% endif %}>Stocks</option>
+                    <option value="forex" {% if selected_category|default:'all'|lower == 'forex' %}selected{% endif %}>Forex</option>
+                    {% comment %} <option value="commodities" {% if selected_category|default:'all'|lower == 'commodities' %}selected{% endif %}>Commodities</option> {% endcomment %}
+                </select>
+            </div>
+            <div class="filter-field">
+                <label class="text-muted small">Platform</label>
+                <select name="platform" class="leaderboard-select">
+                    <option value="all" {% if selected_platform|default:'all'|lower == 'all' %}selected{% endif %}>All</option>
+                    <option value="Twitter" {% if selected_platform|default:'all'|lower == 'twitter' %}selected{% endif %}>X (Twitter)</option>
+                    <option value="Telegram" {% if selected_platform|default:'all'|lower == 'telegram' %}selected{% endif %}>Telegram</option>
+                    <option value="YouTube" {% if selected_platform|default:'all'|lower == 'youtube' %}selected{% endif %}>YouTube</option>
+                    <option value="TikTok" {% if selected_platform|default:'all'|lower == 'tiktok' %}selected{% endif %}>TikTok</option>
+                    {% comment %} <option value="Discord" {% if selected_platform|default:'all'|lower == 'discord' %}selected{% endif %}>Discord</option> {% endcomment %}
+                </select>
+            </div>
+            <div class="filter-field">
+                <label class="text-muted small">Time Frame</label>
+                <select name="timeframe" class="leaderboard-select">
+                    <option value="7" {% if selected_timeframe|default:'30'|lower == '7' %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if selected_timeframe|default:'30'|lower == '30' %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if selected_timeframe|default:'30'|lower == '90' %}selected{% endif %}>Last 90 days</option>
+                    <option value="all" {% if selected_timeframe|default:'30'|lower == 'all' %}selected{% endif %}>All time</option>
+                </select>
+            </div>
+            <div class="filter-field filter-action">
+                <button type="submit" class="btn btn-primary w-100 leaderboard-apply">
+                    <i class="fas fa-filter me-2"></i>Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card leaderboard-table-card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h5 class="card-title mb-1">
+                    <i class="fas fa-trophy text-warning"></i>
+                    KOL Rankings
+                </h5>
+                <p class="card-subtitle mb-0 text-muted small">
+                    {% if total_influencers > 0 %}
+                        Showing {{ total_influencers }} influencer{{ total_influencers|pluralize }} ranked by accuracy, consistency, and speed.
+                    {% else %}
+                        Adjust filters to view available influencers.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% if page_obj and page_obj.object_list %}
+        <div class="table-responsive home-leaderboard-table">
+            <table class="table leaderboard-table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Influencer</th>
+                        <th>Accuracy</th>
+                        <th class="d-none d-md-table-cell">Category</th>
+                        <th class="d-none d-lg-table-cell">Platforms</th>
+                        <th class="d-none d-lg-table-cell">Median RR</th>
+                        <th class="d-none d-lg-table-cell">Median TT</th>
+                        <th>
+                            <span class="d-inline-flex align-items-center gap-1">
+                                Confidence
+                                <i class="fas fa-question-circle text-muted small"
+                                   data-bs-toggle="tooltip"
+                                   title="Clopper-Pearson CI – conservative statistical confidence."></i>
+                            </span>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for influencer in page_obj.object_list %}
+                    <tr class="leaderboard-row">
+                        <td class="rank-cell">
+                            <div class="rank-number">{{ influencer.rank }}</div>
+                        </td>
+                        <td>
+                            <div class="influencer-cell">
+                                <div class="influencer-avatar">
+                                    {{ influencer.influencer.channel_name|first|upper|default:'?' }}
+                                </div>
+                                <div>
+                                    <a class="influencer-name" href="{% url 'dashboard:influencer_profile' influencer.influencer.influencer_id %}">
+                                        {{ influencer.influencer.channel_name|default:'Unknown' }}
+                                    </a>
+                                    <div class="influencer-handle text-muted small">
+                                        {{ influencer.platforms|join:', ' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="metric-stack text-center">
+                                <span class="metric-primary">{{ influencer.accuracy }}%</span>
+                                <span class="metric-label">Success rate</span>
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell">
+                            <span class="leaderboard-pill">{{ influencer.category }}</span>
+                        </td>
+                        <td class="d-none d-lg-table-cell">
+                            <div class="platform-chips">
+                                {% for platform in influencer.platforms %}
+                                <span class="platform-chip">{{ platform }}</span>
+                                {% empty %}
+                                <span class="platform-chip">Web</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="d-none d-lg-table-cell">
+                            <div class="metric-stack text-center">
+                                <span class="metric-primary">{{ influencer.median_rr }}x</span>
+                                <span class="metric-label">Risk : Reward</span>
+                            </div>
+                        </td>
+                        <td class="d-none d-lg-table-cell">
+                            <div class="metric-stack text-center">
+                                <span class="metric-primary">{{ influencer.median_tt }}</span>
+                                <span class="metric-label">Time to target</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="confidence-meter">
+                                <div class="confidence-bar">
+                                    <span style="width: {{ influencer.confidence_value|default:0 }}%;"></span>
+                                </div>
+                                <div class="confidence-meta flex-column align-items-start">
+                                    <span class="metric-primary">{{ influencer.confidence_value }}%</span>
+                                    <small class="text-muted">Total calls · {{ influencer.total_calls }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                {% comment %} <a class="btn-icon" href="{% url 'dashboard:influencer_profile' influencer.influencer.influencer_id %}" title="View profile">
+                                    <i class="fas fa-eye"></i>
+                                </a> {% endcomment %}
+                                <button class="btn-icon" type="button" data-watchlist-btn data-icon-only="true" data-influencer-id="{{ influencer.influencer.influencer_id }}" title="Save to watchlist">
+                                    <i class="far fa-star"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex flex-wrap justify-content-between align-items-center">
+            <span class="text-muted small">
+                Showing {{ page_obj.start_index }} – {{ page_obj.end_index }} of {{ total_influencers }} influencer{{ total_influencers|pluralize }}
+            </span>
+            <nav aria-label="Leaderboard pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1&category={{ selected_category }}&platform={{ selected_platform }}&timeframe={{ selected_timeframe }}">First</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&category={{ selected_category }}&platform={{ selected_platform }}&timeframe={{ selected_timeframe }}">Previous</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">First</span></li>
+                        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if num == page_obj.number %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&category={{ selected_category }}&platform={{ selected_platform }}&timeframe={{ selected_timeframe }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&category={{ selected_category }}&platform={{ selected_platform }}&timeframe={{ selected_timeframe }}">Next</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&category={{ selected_category }}&platform={{ selected_platform }}&timeframe={{ selected_timeframe }}">Last</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        <li class="page-item disabled"><span class="page-link">Last</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% else %}
+        <div class="empty-state text-center py-5">
+            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted mb-2">No influencers match your filters</h5>
+            <p class="text-muted mb-0">Try broadening the timeframe or switching category to see more results.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+{% comment %} 
+
+{% block extra_css %}
+<style>
+/* Fix save button text overflow - use simple approach */
+[data-watchlist-btn] {
+    width: 32px !important;
+    height: 32px !important;
+    overflow: hidden !important;
+    text-indent: -9999px !important;
+}
+
+[data-watchlist-btn] i {
+    text-indent: 0 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    font-size: 14px !important;
+}
+</style>
+{% endblock %} {% endcomment %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.bootstrap) {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
+    }
+});
+</script>
+{% endblock %}

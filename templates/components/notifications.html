@@ -1,0 +1,356 @@
+<!-- Real-time Notifications Component -->
+<div id="notificationContainer" class="position-fixed" style="top: 20px; right: 20px; z-index: 9999; max-width: 400px;"></div>
+
+<!-- Notification Styles -->
+<style>
+.notification {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    margin-bottom: 12px;
+    padding: 16px;
+    transform: translateX(450px);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.hide {
+    transform: translateX(450px);
+    opacity: 0;
+}
+
+.notification::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.notification.success::before {
+    background: var(--success);
+}
+
+.notification.warning::before {
+    background: var(--warning);
+}
+
+.notification.error::before {
+    background: var(--danger);
+}
+
+.notification.info::before {
+    background: var(--info);
+}
+
+.notification-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.notification.success .notification-icon {
+    background: var(--success);
+}
+
+.notification.warning .notification-icon {
+    background: var(--warning);
+}
+
+.notification.error .notification-icon {
+    background: var(--danger);
+}
+
+.notification.info .notification-icon {
+    background: var(--info);
+}
+
+.notification-content {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.notification-message {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.3);
+    transition: width linear;
+}
+
+.notification.success .notification-progress {
+    background: var(--success);
+}
+
+.notification.warning .notification-progress {
+    background: var(--warning);
+}
+
+.notification.error .notification-progress {
+    background: var(--danger);
+}
+
+.notification.info .notification-progress {
+    background: var(--info);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    #notificationContainer {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .notification {
+        transform: translateY(-100px);
+    }
+    
+    .notification.show {
+        transform: translateY(0);
+    }
+    
+    .notification.hide {
+        transform: translateY(-100px);
+    }
+}
+</style>
+
+<!-- Notification JavaScript -->
+<script>
+class NotificationManager {
+    constructor() {
+        this.container = document.getElementById('notificationContainer');
+        this.notifications = new Map();
+        this.counter = 0;
+    }
+    
+    show(type = 'info', title = '', message = '', duration = 5000, actions = []) {
+        const id = ++this.counter;
+        const notification = this.createNotification(id, type, title, message, duration, actions);
+        
+        this.container.appendChild(notification);
+        this.notifications.set(id, notification);
+        
+        // Trigger show animation
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Auto-hide if duration is set
+        if (duration > 0) {
+            const progressBar = notification.querySelector('.notification-progress');
+            if (progressBar) {
+                progressBar.style.transition = `width ${duration}ms linear`;
+                progressBar.style.width = '100%';
+                setTimeout(() => progressBar.style.width = '0%', 10);
+            }
+            
+            setTimeout(() => this.hide(id), duration);
+        }
+        
+        return id;
+    }
+    
+    createNotification(id, type, title, message, duration, actions) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.setAttribute('data-id', id);
+        
+        const iconMap = {
+            success: 'fas fa-check',
+            warning: 'fas fa-exclamation-triangle',
+            error: 'fas fa-times',
+            info: 'fas fa-info'
+        };
+        
+        notification.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="notification-icon">
+                    <i class="${iconMap[type] || iconMap.info}"></i>
+                </div>
+                <div class="notification-content">
+                    ${title ? `<div class="notification-title">${title}</div>` : ''}
+                    <div class="notification-message">${message}</div>
+                    ${actions.length > 0 ? this.renderActions(actions) : ''}
+                </div>
+                <button class="notification-close" onclick="notifications.hide(${id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            ${duration > 0 ? '<div class="notification-progress"></div>' : ''}
+        `;
+        
+        return notification;
+    }
+    
+    renderActions(actions) {
+        return `
+            <div class="mt-2 d-flex gap-2">
+                ${actions.map(action => `
+                    <button class="btn btn-sm ${action.class || 'btn-outline-primary'}" 
+                            onclick="${action.onclick || ''}">${action.text}</button>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    hide(id) {
+        const notification = this.notifications.get(id);
+        if (notification) {
+            notification.classList.add('hide');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+                this.notifications.delete(id);
+            }, 400);
+        }
+    }
+    
+    hideAll() {
+        this.notifications.forEach((notification, id) => {
+            this.hide(id);
+        });
+    }
+    
+    // Preset notification types
+    success(title, message, duration = 5000) {
+        return this.show('success', title, message, duration);
+    }
+    
+    warning(title, message, duration = 7000) {
+        return this.show('warning', title, message, duration);
+    }
+    
+    error(title, message, duration = 0) { // Errors don't auto-hide
+        return this.show('error', title, message, duration);
+    }
+    
+    info(title, message, duration = 5000) {
+        return this.show('info', title, message, duration);
+    }
+    
+    // Specific business logic notifications
+    submissionApproved(channelName) {
+        return this.success(
+            'Submission Approved!', 
+            `${channelName} has been automatically approved and added to the database.`,
+            6000
+        );
+    }
+    
+    submissionRejected(channelName, reason) {
+        return this.error(
+            'Submission Rejected', 
+            `${channelName} was rejected: ${reason}`,
+            0
+        );
+    }
+    
+    submissionPending(channelName) {
+        return this.info(
+            'Submission Under Review', 
+            `${channelName} is being reviewed by our auto-approval system.`,
+            4000
+        );
+    }
+    
+    apiError(message) {
+        return this.error(
+            'API Error', 
+            message || 'An error occurred while processing your request.',
+            0
+        );
+    }
+    
+    connectionLost() {
+        return this.warning(
+            'Connection Lost', 
+            'Trying to reconnect...',
+            0
+        );
+    }
+    
+    connectionRestored() {
+        return this.success(
+            'Connection Restored', 
+            'Real-time updates are now active.',
+            3000
+        );
+    }
+}
+
+// Initialize global notification manager
+const notifications = new NotificationManager();
+
+// Auto-connect to real-time updates when available
+document.addEventListener('DOMContentLoaded', function() {
+    // Example usage for testing
+    setTimeout(() => {
+        notifications.info('Dashboard Loaded', 'Real-time notifications are active.');
+    }, 1000);
+    
+    // Listen for custom events from other parts of the application
+    document.addEventListener('submission:approved', function(event) {
+        notifications.submissionApproved(event.detail.channelName);
+    });
+    
+    document.addEventListener('submission:rejected', function(event) {
+        notifications.submissionRejected(event.detail.channelName, event.detail.reason);
+    });
+    
+    document.addEventListener('submission:pending', function(event) {
+        notifications.submissionPending(event.detail.channelName);
+    });
+    
+    document.addEventListener('api:error', function(event) {
+        notifications.apiError(event.detail.message);
+    });
+});
+
+// Expose to global scope for easy access
+window.notifications = notifications;
+</script>

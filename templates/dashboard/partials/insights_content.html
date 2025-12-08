@@ -1,0 +1,277 @@
+{% load humanize %}
+<div class="insights-dashboard">
+    {% comment %} <section class="insights-hero card mb-2">
+        <div class="insights-hero-icon" aria-hidden="true">
+            <i class="fas fa-wave-square"></i>
+        </div>
+        <div class="flex-grow-1">
+            <p class="insights-hero-eyebrow mb-1">Live Intelligence</p>
+            <h1 class="mb-1">Insights Dashboard</h1>
+            <p class="mb-0 text-muted">Advanced analytics and consensus data for professional traders</p>
+        </div>
+        <div class="insights-hero-metrics ms-auto">
+            <div class="insights-metric">
+                <p class="text-muted mb-1">Consensus Score</p>
+                <div class="insights-metric-value">{{ consensus_score|default:"0.0" }}%</div>
+                <small class="text-muted">Updated {{ insights_last_updated|naturaltime }}</small>
+            </div>
+            <div class="insights-divider" role="presentation"></div>
+            <div class="insights-metric">
+                <p class="text-muted mb-1">Active Signals</p>
+                <div class="insights-metric-value">{{ active_signals|default:0|intcomma }}</div>
+                <small class="text-muted">Tracking live</small>
+            </div>
+        </div>
+    </section> {% endcomment %}
+
+    <div>
+        <h2 class="mb-1"><i class="fas fa-wave-square text-info me-2"></i>Insights Dashboard</h2>
+        <p class="text-muted mb-0">Advanced analytics and consensus data for professional traders</p>
+        {% comment %} <span class="badge bg-success mt-2">
+            <i class="fas fa-broadcast-tower me-1"></i>{{ active_signals|default:0 }} active signals
+        </span> {% endcomment %}
+    </div>
+
+    <div class="insights-tabs card1" role="tablist" aria-label="Insights sections">
+        <button class="insights-tab active" data-tab="consensus" type="button">Consensus Index</button>
+        <button class="insights-tab" data-tab="speed" type="button">Speed Leaders</button>
+        <button class="insights-tab" data-tab="heatmap" type="button">Asset Heatmap</button>
+        <button class="insights-tab" data-tab="risk" type="button">Risk Analysis</button>
+    </div>
+
+    <div class="insights-section active" data-panel="consensus">
+        <div class="insights-card">
+            <div class="insights-card-header">
+                <div>
+                    <span class="insights-pill insights-pill-primary">
+                        <i class="fas fa-bolt me-1"></i> Market Consensus Index
+                    </span>
+                    <p class="mb-0 text-muted mt-1">Percentage of active KOLs aligning on directional bias per asset</p>
+                </div>
+            </div>
+            <div class="row g-3 g-lg-4">
+                {% for asset in consensus_assets %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="consensus-card">
+                        <div class="consensus-card-top">
+                            <strong class="consensus-asset">{{ asset.symbol }}</strong>
+                            <span class="trend-badge {% if asset.trend == 'down' %}trend-down{% else %}trend-up{% endif %}">
+                                <i class="fas fa-arrow-{% if asset.trend == 'down' %}down{% else %}up{% endif %}"></i>
+                            </span>
+                        </div>
+                        <div class="consensus-ring" style="--progress: {{ asset.win_rate|default:0 }}%;">
+                            <span>{{ asset.win_rate|default:"0.0" }}%</span>
+                        </div>
+                        <div class="consensus-meta text-center">
+                            <p class="mb-1 text-muted">{{ asset.total_calls|intcomma }} calls tracked</p>
+                            <p class="mb-0 consensus-price">
+                                {% if asset.price %}
+                                    {{ asset.price|floatformat:2 }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </p>
+                            {% with change=asset.trend_change|default:0|add:0 %}
+                            <small class="{% if change < 0 %}text-danger{% else %}text-success{% endif %}">
+                                {% if change > 0 %}
+                                    +{{ change|floatformat:1 }}%
+                                {% elif change < 0 %}
+                                    {{ change|floatformat:1 }}%
+                                {% else %}
+                                    0.0%
+                                {% endif %}
+                            </small>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-bullseye mb-3" aria-hidden="true"></i>
+                        <p class="mb-0">No consensus data available for this period.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="insights-section" data-panel="speed">
+        <div class="insights-card">
+            <div class="insights-card-header">
+                <div>
+                    <span class="insights-pill insights-pill-info">
+                        <i class="fas fa-stopwatch me-1"></i> Fastest to Target
+                    </span>
+                    <p class="mb-0 text-muted mt-1">KOLs with the quickest average time-to-target (last 30 days)</p>
+                </div>
+            </div>
+            <div class="speed-table">
+                {% for leader in speed_leaders %}
+                <div class="speed-row">
+                    <div class="speed-rank">{{ leader.rank }}</div>
+                    <div class="speed-info">
+                        <strong>{{ leader.name }}</strong>
+                        <span class="text-muted">{{ leader.call_count }} calls</span>
+                    </div>
+                    <span class="speed-chip">{{ leader.category }}</span>
+                    <div class="ms-auto text-end">
+                        {% if leader.avg_days %}
+                        <span class="speed-time">{{ leader.avg_days }}d</span>
+                        <small class="text-muted d-block">avg time</small>
+                        {% else %}
+                        <small class="text-muted">n/a</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state text-center py-5">
+                    <i class="fas fa-stopwatch mb-3" aria-hidden="true"></i>
+                    <p class="mb-0">Speed leader data requires more resolved signals.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="insights-section" data-panel="heatmap">
+        <div class="insights-card">
+            <div class="insights-card-header">
+                <div>
+                    <span class="insights-pill insights-pill-success">
+                        <i class="fas fa-th-large me-1"></i> Performance by Asset Class
+                    </span>
+                    <p class="mb-0 text-muted mt-1">Win rates and average risk:reward across asset categories</p>
+                </div>
+            </div>
+            <div class="row g-3 g-lg-4">
+                {% for heat in heatmap_cards %}
+                <div class="col-lg-4">
+                    <div class="heatmap-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">{{ heat.asset_type }}</h5>
+                            <span class="heatmap-pill">{{ heat.total_calls|intcomma }} calls</span>
+                        </div>
+                        <div class="heatmap-progress">
+                            <div class="heatmap-bar" style="width: {{ heat.win_rate|default:0 }}%;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <div>
+                                <p class="text-muted mb-1">Win Rate</p>
+                                <strong>{{ heat.win_rate|default:"0.0" }}%</strong>
+                            </div>
+                            <div class="text-end">
+                                <p class="text-muted mb-1">Avg Risk:Reward</p>
+                                <strong>{% if heat.avg_rr %}{{ heat.avg_rr }}x{% else %}—{% endif %}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="empty-state text-center py-5">
+                        <i class="fas fa-th-large mb-3" aria-hidden="true"></i>
+                        <p class="mb-0">Heatmap data will appear once we track enough calls per asset class.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="insights-section" data-panel="risk">
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <div class="insights-card h-100">
+                    <div class="insights-card-header">
+                        <div>
+                            <span class="insights-pill insights-pill-warning">
+                                <i class="fas fa-bullhorn me-1"></i> Risk Distribution
+                            </span>
+                            <p class="mb-0 text-muted mt-1">Position sizing split across conservative, moderate, and aggressive calls</p>
+                        </div>
+                    </div>
+                    <div class="risk-distribution">
+                        {% for bucket in risk_distribution %}
+                        <div class="risk-row">
+                            <div>
+                                <strong>{{ bucket.label }}</strong>
+                            </div>
+                            <div class="risk-meter">
+                                <div class="risk-meter-fill bg-{{ bucket.color }}" style="width: {{ bucket.value }}%"></div>
+                            </div>
+                            <span class="risk-value">{{ bucket.value|floatformat:1 }}%</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="insights-card h-100">
+                    <div class="insights-card-header">
+                        <span class="insights-pill insights-pill-secondary">
+                            <i class="fas fa-wave-square me-1"></i> Market Volatility
+                        </span>
+                    </div>
+                    <div class="volatility-widget">
+                        <p class="text-muted mb-1">Volatility Index</p>
+                        <div class="volatility-value">{{ volatility_index }}</div>
+                        <small class="text-muted text-uppercase">{{ volatility_trend }}</small>
+                        <div class="volatility-meta mt-3">
+                            <div class="volatility-meta-row">
+                                <span>30-day avg</span>
+                                <strong>{{ volatility_avg_30|default:"—" }}</strong>
+                            </div>
+                            <div class="volatility-meta-row">
+                                <span>90-day avg</span>
+                                <strong>{{ volatility_avg_90|default:"—" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="insights-card mt-3">
+            <div class="insights-card-header">
+                <span class="insights-pill insights-pill-secondary">
+                    <i class="fas fa-project-diagram me-1"></i> Asset Correlation Matrix
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-sm correlation-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            {% if correlation_matrix %}
+                                {% for header,value in correlation_matrix.0.items %}
+                                    {% if header != 'asset' %}
+                                        <th>{{ header }}</th>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in correlation_matrix %}
+                        <tr>
+                            <th>{{ row.asset }}</th>
+                            {% for header,value in row.items %}
+                                {% if header != 'asset' %}
+                                    <td class="{% if value > 0 %}text-success{% elif value < 0 %}text-danger{% endif %}">
+                                        {{ value|floatformat:2 }}
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Correlation data unavailable</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

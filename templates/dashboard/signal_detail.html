@@ -1,0 +1,402 @@
+{% extends 'base_dashboard.html' %}
+{% load price_filters %}
+
+{% block title %}Signal Details - KillShill{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:signals' %}">Signals</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if signal.asset.symbol %}{{ signal.asset.symbol }} Signal{% else %}Signal Details{% endif %}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-bullseye"></i>
+    Signal Details
+{% endblock %}
+
+{% block page_subtitle %}
+    <p class="page-subtitle">Comprehensive trading signal information and analysis</p>
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <a href="{% url 'dashboard:signals' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>
+        Back to Signals
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% load static %}{% static 'css/signal-ux-enhancements.css' %}">
+<style>
+.signal-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.15);}
+.signal-detail-card .card-body{padding:1.5rem;}
+.signal-header-info{min-width:0;}
+.signal-title{font-size:1.5rem;margin-bottom:0;color:var(--text-primary);word-break:break-word;}
+.signal-meta span{margin-left:.35rem;color:var(--text-secondary);}
+.platform-badge{background:rgba(99,102,241,.15);color:var(--primary);border-radius:999px;padding:.25rem .75rem;font-weight:600;font-size:.8rem;}
+.signal-status-wrapper{margin-top:1rem;background:var(--bg-tertiary);border-radius:12px;padding:1rem 1.25rem;}
+.signal-status-content{display:inline-flex;align-items:center;gap:.5rem;font-weight:600;padding:.45rem 1.1rem;border-radius:999px;}
+.signal-status-content.status-hit{color:#16a34a;background:rgba(22,163,74,.15);}
+.signal-status-content.status-stop{color:#dc2626;background:rgba(220,38,38,.15);}
+.signal-status-content.status-closed{color:#64748b;background:rgba(100,116,139,.15);}
+.signal-status-content.status-active{color:#f59e0b;background:rgba(245,158,11,.15);}
+.signal-content-block{background:var(--bg-secondary);border-radius:12px;padding:1.25rem;border-left:4px solid var(--primary);color:var(--text-primary);line-height:1.6;overflow-wrap:anywhere;}
+.signal-content-block-text{margin-bottom:0;white-space:pre-wrap;word-break:break-word;}
+.data-item{padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.1);}
+.data-item:last-child{border-bottom:none;}
+.data-label{font-size:0.9rem;color:var(--text-secondary);margin-bottom:0.5rem;font-weight:500;}
+.data-value{font-size:1rem;color:var(--text-primary);font-weight:600;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+.data-value.text-muted{font-weight:400;color:var(--text-secondary);}
+.price-badge{display:inline-block;font-size:0.7rem;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:0.5rem;text-transform:uppercase;min-width:40px;text-align:center;}
+.price-badge.actual{background:#10b981;color:#fff;}
+.price-badge.assumed{background:#f59e0b;color:#fff;}
+@media(max-width:768px){
+    .signal-title{font-size:1.25rem;}
+    .signal-header-info{width:100%;}
+    .d-flex.gap-2{flex-wrap:wrap;}
+    .btn-sm{font-size:0.8rem;padding:0.375rem 0.75rem;}
+    .data-item{padding:0.75rem 0;}
+    .data-value{flex-direction:column;align-items:flex-start;gap:0.25rem;}
+    .price-badge{margin-left:0;margin-top:0.25rem;font-size:0.65rem;padding:1px 5px;}
+}
+@media(max-width:576px){
+    .signal-avatar{width:50px;height:50px;font-size:1.2rem;}
+    .signal-title{font-size:1.1rem;}
+    .data-value{font-size:0.9rem;}
+    .data-label{font-size:0.8rem;}
+    .card-body{padding:1rem;}
+    .signal-detail-card .card-body{padding:1rem;}
+    .row.g-3{--bs-gutter-x:1rem;--bs-gutter-y:0.5rem;}
+    .row.g-4{--bs-gutter-x:1rem;--bs-gutter-y:1rem;}
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+</div>
+<div class="text-center mt-4">
+    <a href="{% url 'dashboard:home' %}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+</div>
+{% elif signal %}
+<!-- Signal Header -->
+<div class="card mb-4 signal-detail-card">
+    <div class="card-body">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+            <div class="d-flex align-items-center gap-3 w-100">
+                <div class="signal-avatar">{{ signal.influencer.channel_name|first|upper|default:'?' }}</div>
+                <div class="signal-header-info">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <h4 class="mb-0 signal-title">{{ signal.asset.symbol|default:'Asset' }} Signal</h4>
+                        <span class="badge platform-badge badge-rounded signal-platform">{{ signal.influencer.platform|default:'Unknown' }}</span>
+                    </div>
+                    <div class="text-muted signal-meta">
+                        By <strong>{{ signal.influencer.channel_name|default:'Unknown' }}</strong>
+                        {% if signal.influencer.author_name %}<span>@{{ signal.influencer.author_name }}</span>{% endif %}
+                        
+                        {% with cred_score=signal.influencer|influencer_credibility_score %}
+                        {% if cred_score %}
+                        <span class="ms-2">
+                            <i class="fas fa-chart-line"></i>
+                            <span class="{{ cred_score.class }}">{{ cred_score.percentage }}% Success</span>
+                            <small class="text-muted">({{ cred_score.successful }}/{{ cred_score.total }})</small>
+                        </span>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            <div class="text-end flex-shrink-0">
+                <span class="badge badge-{{ badge_class }} mb-2 signal-status-chip">{{ status }}</span>
+                <div class="text-muted small">{{ time_ago }}</div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+            <div class="col-sm-6 col-lg-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small flex-shrink-0">Platform:</span>
+                    {% if signal.influencer.platform == 'YouTube' %}
+                    <span class="badge bg-danger">YouTube</span>
+                    {% elif signal.influencer.platform == 'Twitter' or signal.influencer.platform == 'X' %}
+                    <span class="badge bg-info">X</span>
+                    {% elif signal.influencer.platform == 'Telegram' %}
+                    <span class="badge bg-info">Telegram</span>
+                    {% elif signal.influencer.platform == 'TikTok' %}
+                    <span class="badge bg-warning">TikTok</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ signal.influencer.platform|default:'Unknown' }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small flex-shrink-0">Asset:</span>
+                    <span class="fw-semibold">{{ signal.asset.asset_type|default:'Crypto' }}</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small flex-shrink-0">Time:</span>
+                    <span class="fw-semibold">{{ signal.created_at|date:"M d, H:i" }}</span>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small flex-shrink-0">Status:</span>
+                    {% with cred_info=signal|credibility_display %}
+                    <span class="fw-semibold {{ cred_info.class }}">{{ cred_info.value }}</span>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Signal Content -->
+{% if signal.influencer.platform != 'YouTube' and signal.influencer.platform != 'TikTok' %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-file-alt me-2"></i>
+            Signal Content
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="p-3" style="background: var(--bg-tertiary); border-radius: 8px; border-left: 4px solid var(--primary);">
+            <p class="mb-0 signal-content-block-text">{{ signal_content|default:'No content available' }}</p>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card mb-4">
+    <div class="card-body text-center py-4">
+        <i class="fas fa-video fa-3x mb-3" style="color: var(--primary);"></i>
+        <h5>Video Content Analyzed</h5>
+        <p class="text-muted mb-0">This signal was extracted from {{ signal.influencer.platform }} video content using AI analysis.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Trading Details -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line text-success me-2"></i>
+                    Entry & Targets
+                </h5>
+            </div>
+            <div class="card-body">
+                {% with entry_data=signal|get_entry_price %}
+                {% if entry_data.price %}
+                <div class="data-item">
+                    <div class="data-label">Entry Price</div>
+                    <div class="data-value text-success">
+                        {{ entry_data.price|format_price }}
+                        <span class="price-badge {% if entry_data.is_assumed %}assumed{% else %}actual{% endif %}">
+                            {% if entry_data.is_assumed %}EST{% else %}ACTUAL{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                {% with target_data=signal|get_target_price %}
+                {% if target_data.price %}
+                <div class="data-item">
+                    <div class="data-label">
+                        {% if signal.target_first and signal.target_first > 0 %}Target 1{% else %}Target{% endif %}
+                    </div>
+                    <div class="data-value">
+                        {{ target_data.price|format_price }}
+                        <span class="price-badge {% if target_data.is_assumed %}assumed{% else %}actual{% endif %}">
+                            {% if target_data.is_assumed %}EST{% else %}ACTUAL{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="data-item">
+                    <div class="data-label">Target</div>
+                    <div class="data-value text-muted">Not specified</div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                {% if signal.target_second and signal.target_second > 0 %}
+                <div class="data-item">
+                    <div class="data-label">Target 2</div>
+                    <div class="data-value">
+                        {{ signal.target_second|format_price }}
+                        <span class="price-badge actual">ACTUAL</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if signal.target_third and signal.target_third > 0 %}
+                <div class="data-item">
+                    <div class="data-label">Target 3</div>
+                    <div class="data-value">
+                        {{ signal.target_third|format_price }}
+                        <span class="price-badge actual">ACTUAL</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if signal.target_percentage %}
+                <div class="alert alert-info mb-0 mt-3">
+                    <i class="fas fa-info-circle"></i>
+                    Expected gain: <strong>{{ signal.target_percentage|format_percentage }}</strong>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shield-alt text-danger me-2"></i>
+                    Risk Management
+                </h5>
+            </div>
+            <div class="card-body">
+                {% with stoploss_data=signal|get_stoploss_price %}
+                {% if stoploss_data.price %}
+                <div class="data-item">
+                    <div class="data-label">Stop Loss</div>
+                    <div class="data-value text-danger">
+                        {{ stoploss_data.price|format_price }}
+                        <span class="price-badge {% if stoploss_data.is_assumed %}assumed{% else %}actual{% endif %}">
+                            {% if stoploss_data.is_assumed %}EST{% else %}ACTUAL{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="data-item">
+                    <div class="data-label">Stop Loss</div>
+                    <div class="data-value text-muted">Not specified</div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                {% if signal.stoploss_percentage %}
+                <div class="data-item">
+                    <div class="data-label">Stop Loss %</div>
+                    <div class="data-value text-danger">{{ signal.stoploss_percentage|format_percentage }}</div>
+                </div>
+                {% endif %}
+
+                {% with timeframe_data=signal|get_timeframe %}
+                {% if timeframe_data.value %}
+                <div class="data-item">
+                    <div class="data-label">
+                        {% if timeframe_data.is_assumed %}Est. Timeframe{% else %}Target Timeframe{% endif %}
+                    </div>
+                    <div class="data-value">
+                        {% if timeframe_data.type == "date" %}
+                            {{ timeframe_data.value|date:"M d, Y" }}
+                        {% else %}
+                            {{ timeframe_data.value }}
+                        {% endif %}
+                        <span class="price-badge {% if timeframe_data.is_assumed %}assumed{% else %}actual{% endif %}">
+                            {% if timeframe_data.is_assumed %}EST{% else %}GIVEN{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+<div class="mt-4 signal-status-wrapper">
+    <div class="text-muted small mb-1">Signal Status</div>
+    <div class="signal-status-content {% if signal.target_hit %}status-hit{% elif signal.stoploss_hit %}status-stop{% elif signal.done %}status-closed{% else %}status-active{% endif %}">
+        {% if signal.target_hit %}
+        <i class="fas fa-check-circle"></i>
+        Target Hit - Successful Trade
+        {% elif signal.stoploss_hit %}
+        <i class="fas fa-times-circle"></i>
+        Stop Loss Hit
+        {% elif signal.done %}
+        <i class="fas fa-check"></i>
+        Trade Closed
+        {% else %}
+        <i class="fas fa-spinner"></i>
+        Active - Monitoring
+        {% endif %}
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Asset Information -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-coins text-warning me-2"></i>
+            Asset Information
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="data-item">
+            <div class="data-label">Symbol</div>
+            <div class="data-value">{{ signal.asset.symbol }}</div>
+        </div>
+        <div class="data-item">
+            <div class="data-label">Name</div>
+            <div class="data-value">{{ signal.asset.name|default:'N/A' }}</div>
+        </div>
+        <div class="data-item">
+            <div class="data-label">Exchange</div>
+            <div class="data-value">{{ signal.asset.exchange|default:'N/A' }}</div>
+        </div>
+        <div class="data-item">
+            <div class="data-label">Current Price</div>
+            <div class="data-value">{{ signal.asset.current_price|format_price }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Actions -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mt-4 pt-3 border-top">
+    <div>
+        <a href="{% url 'dashboard:signals' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>
+            Back to Signals
+        </a>
+    </div>
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="{% url 'dashboard:home' %}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>
+            Dashboard
+        </a>
+    </div>
+</div>
+{% endif %}
+
+
+{% endblock %}

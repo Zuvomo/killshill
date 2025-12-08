@@ -1,0 +1,340 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Alerts - Killshill{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="fas fa-bell me-2 text-warning"></i>Alerts & Notifications</h2>
+        <p class="text-muted">Manage your alert preferences and view notifications</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAlertModal">
+        <i class="fas fa-plus me-2"></i>Create Alert
+    </button>
+</div>
+
+<!-- Alert Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Active Alerts</h6>
+                        <h3 class="mb-0">12</h3>
+                    </div>
+                    <i class="fas fa-bell fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Triggered Today</h6>
+                        <h3 class="mb-0">3</h3>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Pending</h6>
+                        <h3 class="mb-0">9</h3>
+                    </div>
+                    <i class="fas fa-clock fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-danger">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Failed</h6>
+                        <h3 class="mb-0">1</h3>
+                    </div>
+                    <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Notifications -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Notifications</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="markAllRead()">
+                    <i class="fas fa-check me-1"></i>Mark All Read
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item bg-transparent border-start border-success border-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-bullseye text-success me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">Target Hit Alert</h6>
+                                        <small class="text-muted">CryptoMaster's BTC call reached target 1</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">2 minutes ago</small>
+                                <div><span class="badge bg-success">New</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item bg-transparent border-start border-warning border-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-chart-line text-warning me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">Accuracy Threshold</h6>
+                                        <small class="text-muted">TradingSignals dropped below 80% accuracy</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">15 minutes ago</small>
+                                <div><span class="badge bg-warning">Alert</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item bg-transparent border-start border-info border-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-plus text-info me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0">New Influencer</h6>
+                                        <small class="text-muted">CryptoGuru added to your watchlist</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">1 hour ago</small>
+                                <div><span class="badge bg-info">Info</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Alerts -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Your Active Alerts</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Alert Type</th>
+                                <th>Target</th>
+                                <th>Condition</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-percentage text-success me-2"></i>
+                                    Accuracy Alert
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                            CM
+                                        </div>
+                                        CryptoMaster
+                                    </div>
+                                </td>
+                                <td>Success rate drops below 85%</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>Dec 15, 2023</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-bullseye text-info me-2"></i>
+                                    Target Hit Alert
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                            TS
+                                        </div>
+                                        TradingSignals
+                                    </div>
+                                </td>
+                                <td>Any call reaches target</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>Dec 14, 2023</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-chart-line text-warning me-2"></i>
+                                    Volume Alert
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">All Influencers</span>
+                                </td>
+                                <td>Daily calls exceed 50</td>
+                                <td><span class="badge bg-warning">Paused</span></td>
+                                <td>Dec 12, 2023</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Alert Modal -->
+<div class="modal fade" id="createAlertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Alert</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="alertForm">
+                    <div class="mb-3">
+                        <label for="alertType" class="form-label">Alert Type</label>
+                        <select class="form-select" id="alertType" required>
+                            <option value="">Select alert type</option>
+                            <option value="accuracy">Accuracy Alert</option>
+                            <option value="target">Target Hit Alert</option>
+                            <option value="volume">Volume Alert</option>
+                            <option value="new_call">New Call Alert</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="targetInfluencer" class="form-label">Target Influencer</label>
+                        <select class="form-select" id="targetInfluencer" required>
+                            <option value="">Select influencer</option>
+                            <option value="all">All Influencers</option>
+                            <option value="cryptomaster">CryptoMaster</option>
+                            <option value="tradingsignals">TradingSignals</option>
+                            <option value="cryptopro">CryptoPro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="condition" class="form-label">Condition</label>
+                        <input type="text" class="form-control" id="condition" 
+                               placeholder="e.g., Success rate drops below 80%" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="deliveryMethod" class="form-label">Delivery Method</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="emailDelivery" checked>
+                            <label class="form-check-label" for="emailDelivery">
+                                Email Notification
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="pushDelivery" checked>
+                            <label class="form-check-label" for="pushDelivery">
+                                Push Notification
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createAlert()">Create Alert</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAllRead() {
+    // Mark all notifications as read
+    alert('All notifications marked as read');
+}
+
+function createAlert() {
+    const form = document.getElementById('alertForm');
+    const formData = new FormData(form);
+    
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Create alert
+    alert('Alert created successfully!');
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createAlertModal'));
+    modal.hide();
+    
+    // Reset form
+    form.reset();
+}
+
+// Auto-refresh notifications every 30 seconds
+setInterval(function() {
+    // This would fetch new notifications
+    console.log('Checking for new notifications...');
+}, 30000);
+</script>
+{% endblock %}
