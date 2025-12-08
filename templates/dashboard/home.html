@@ -79,14 +79,10 @@
                 <h5 class="card-title mb-0">KOL Leaderboard</h5>
             </div>
             <div class="leaderboard-filters">
-                <button class="leaderboard-filter active" data-category="all"
-                    onclick="filterLeaderboard('all', this)">All</button>
-                <button class="leaderboard-filter" data-category="crypto"
-                    onclick="filterLeaderboard('crypto', this)">Crypto</button>
-                <button class="leaderboard-filter" data-category="stocks"
-                    onclick="filterLeaderboard('stocks', this)">Stocks</button>
-                <button class="leaderboard-filter" data-category="forex"
-                    onclick="filterLeaderboard('forex', this)">Forex</button>
+                <button class="leaderboard-filter active" data-category="all" onclick="filterLeaderboard('all', this)">All</button>
+            <button class="leaderboard-filter" data-category="crypto" onclick="filterLeaderboard('crypto', this)">Crypto</button>
+            <button class="leaderboard-filter" data-category="stocks" onclick="filterLeaderboard('stocks', this)">Stocks</button>
+            <button class="leaderboard-filter" data-category="forex" onclick="filterLeaderboard('forex', this)">Forex</button>
                 <a href="{% url 'dashboard:leaderboard' %}" class="leaderboard-filter more">
                     <i class="fas fa-filter"></i>
                     More Filters
