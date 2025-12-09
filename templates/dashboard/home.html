@@ -73,20 +73,22 @@
 
     <!-- KOL Leaderboard -->
     <div id="section-leaderboard" class="card mb-4 overflow-hidden">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="card-header leaderboard-header d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="leaderboard-heading d-flex align-items-center gap-2">
                 <span class="leaderboard-icon" aria-hidden="true">📊</span>
                 <h5 class="card-title mb-0">KOL Leaderboard</h5>
             </div>
-            <div class="leaderboard-filters">
-                <button class="leaderboard-filter active" data-category="all" onclick="filterLeaderboard('all', this)">All</button>
-            <button class="leaderboard-filter" data-category="crypto" onclick="filterLeaderboard('crypto', this)">Crypto</button>
-            <button class="leaderboard-filter" data-category="stocks" onclick="filterLeaderboard('stocks', this)">Stocks</button>
-            <button class="leaderboard-filter" data-category="forex" onclick="filterLeaderboard('forex', this)">Forex</button>
-                <a href="{% url 'dashboard:leaderboard' %}" class="leaderboard-filter more">
-                    <i class="fas fa-filter"></i>
-                    More Filters
-                </a>
+            <div class="leaderboard-filters d-flex align-items-center gap-2 flex-wrap">
+                <div class="leaderboard-filter-buttons d-flex gap-2 flex-wrap">
+                    <button class="leaderboard-filter active" data-category="all" onclick="filterLeaderboard('all', this)">All</button>
+                    <button class="leaderboard-filter" data-category="crypto" onclick="filterLeaderboard('crypto', this)">Crypto</button>
+                    <button class="leaderboard-filter" data-category="stocks" onclick="filterLeaderboard('stocks', this)">Stocks</button>
+                    <button class="leaderboard-filter" data-category="forex" onclick="filterLeaderboard('forex', this)">Forex</button>
+                    <a href="{% url 'dashboard:leaderboard' %}" class="leaderboard-filter more">
+                        <i class="fas fa-filter"></i>
+                        More Filters
+                    </a>
+                </div>
                 <span class="leaderboard-live-pill">
                     <span class="live-dot"></span>
                     Updated Live
@@ -307,16 +309,16 @@
 
     <!-- Top Signals Preview -->
     <div id="section-signals" class="card mb-4 top-signals-card overflow-hidden">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
+        <div class="card-header signals-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="signals-title-section">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-bullseye text-danger"></i>
                     Top Signals
                 </h5>
-                {% comment %} <p class="card-subtitle">Latest high-confidence calls from verified influencers</p> 
+                {% comment %} <p class="card-subtitle">Latest high-confidence calls from verified influencers</p>
                 {% endcomment %}
             </div>
-            <a href="{% url 'dashboard:signals' %}" class="btn btn-gradient btn-sm">
+            <a href="{% url 'dashboard:signals' %}" class="btn btn-gradient btn-sm signals-view-all-btn">
                 View All Signals
                 <i class="fas fa-arrow-right"></i>
             </a>

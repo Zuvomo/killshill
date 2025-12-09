@@ -1608,6 +1608,230 @@
         }
     }
 
+    /* ==================== ENHANCED NAVBAR MOBILE RESPONSIVENESS ==================== */
+
+    /* Small phones - Enhanced button sizing and spacing */
+    @media (max-width: 576px) {
+        .top-navbar {
+            padding: 0 1.25rem !important;
+        }
+
+        .navbar-actions .btn {
+            max-width: 80px !important;
+            padding: 0.35rem 0.6rem !important;
+            font-size: 0.8125rem !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .navbar-actions {
+            gap: 0.5rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        .navbar-brand {
+            margin-right: 1rem !important;
+        }
+
+        .navbar-search {
+            display: none !important;
+        }
+    }
+
+    /* Very small phones - Maximum space optimization */
+    @media (max-width: 480px) {
+        .top-navbar {
+            padding: 0 1rem !important;
+        }
+
+        .navbar-actions .btn {
+            max-width: 70px !important;
+            padding: 0.3rem 0.5rem !important;
+            font-size: 0.75rem !important;
+            min-height: 40px !important;
+        }
+
+        .navbar-actions {
+            gap: 0.375rem !important;
+        }
+
+        .navbar-brand {
+            margin-right: 0.75rem !important;
+        }
+
+        #mobile-menu-toggle {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
+        }
+    }
+
+    /* iPhone SE and similar small devices */
+    @media (max-width: 375px) {
+        .top-navbar {
+            padding: 0 0.875rem !important;
+        }
+
+        .navbar-actions .btn {
+            max-width: 65px !important;
+            padding: 0.25rem 0.45rem !important;
+            font-size: 0.7rem !important;
+            min-height: 38px !important;
+        }
+
+        .navbar-actions {
+            gap: 0.25rem !important;
+        }
+
+        .navbar-brand {
+            font-size: 1rem !important;
+            margin-right: 0.5rem !important;
+        }
+
+        .navbar-brand span {
+            display: none !important;
+        }
+
+        #mobile-menu-toggle {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            margin-right: 0.25rem !important;
+        }
+    }
+
+    /* ==================== MOBILE CARD AND LAYOUT RESPONSIVENESS ==================== */
+
+    /* Card Headers Mobile Optimization */
+    @media (max-width: 768px) {
+        /* Top Signals section */
+        .signals-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem !important;
+        }
+
+        .signals-title-section {
+            text-align: center;
+        }
+
+        .signals-view-all-btn {
+            width: 100% !important;
+            max-width: none !important;
+            justify-content: center !important;
+        }
+
+        /* Analytics Dashboard Header */
+        .analytics-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1.5rem !important;
+        }
+
+        .analytics-title-section {
+            text-align: left !important;
+        }
+
+        .analytics-timeframe-form {
+            flex-direction: column !important;
+            gap: 1rem !important;
+        }
+
+        .timeframe-control {
+            justify-content: flex-start !important;
+            gap: 1rem !important;
+        }
+
+        .analytics-timeframe-select {
+            min-width: 160px !important;
+            flex: 1 !important;
+        }
+
+        .analytics-apply-btn {
+            width: 100% !important;
+            align-self: stretch !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* General card header improvements */
+        .card-header.d-flex {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem !important;
+        }
+
+        .card-header .btn {
+            width: 100% !important;
+            max-width: 280px !important;
+            align-self: center !important;
+        }
+    }
+
+    /* Small Mobile Phones */
+    @media (max-width: 576px) {
+        .signals-header {
+            padding: 1rem !important;
+            gap: 0.75rem !important;
+        }
+
+        .analytics-header {
+            padding: 0.875rem !important;
+            gap: 1rem !important;
+        }
+
+        .analytics-timeframe-form {
+            gap: 0.75rem !important;
+        }
+
+        .timeframe-control {
+            gap: 1rem !important;
+            justify-content: flex-start !important;
+        }
+
+        .analytics-timeframe-select {
+            font-size: 0.875rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        .analytics-apply-btn {
+            font-size: 0.9rem !important;
+            padding: 0.625rem 1rem !important;
+            min-height: 44px !important;
+        }
+
+        .signals-view-all-btn {
+            font-size: 0.875rem !important;
+            padding: 0.625rem 1rem !important;
+        }
+    }
+
+    /* Very Small Phones */
+    @media (max-width: 480px) {
+        .analytics-header {
+            padding: 0.75rem !important;
+        }
+
+        .analytics-title-section h2 {
+            font-size: 1.25rem !important;
+        }
+
+        .analytics-apply-btn,
+        .signals-view-all-btn {
+            font-size: 0.8rem !important;
+            padding: 0.5rem 0.875rem !important;
+            min-height: 42px !important;
+        }
+
+        .analytics-timeframe-select {
+            font-size: 0.8rem !important;
+            flex: 1 !important;
+        }
+    }
+
     /* ==================== BREADCRUMB NAVIGATION ==================== */
     .breadcrumb-nav {
         padding: 0.75rem 2rem 1rem;

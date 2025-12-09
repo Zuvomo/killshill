@@ -1,6 +1,6 @@
 {% load humanize %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
+<div class="analytics-header d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div class="analytics-title-section">
         <h2 class="mb-1"><i class="fas fa-chart-line text-info me-2"></i>Analytics Dashboard</h2>
         <p class="text-muted mb-0">Tracking {{ total_signals|default:0 }} signals across {{ active_influencers|default:0 }} influencers.</p>
         <span class="badge bg-success mt-2">
@@ -8,21 +8,23 @@
         </span>
     </div>
     <form method="get"
-          class="d-flex align-items-center gap-2"
+          class="analytics-timeframe-form d-flex align-items-center gap-2 flex-wrap"
           action="{% url 'dashboard:analytics' %}"
           {% if embed_mode %}data-embed-form="analytics"{% endif %}>
-        <label for="timeframe" class="text-muted small mb-0">Timeframe</label>
-        <select class="form-select" name="timeframe" id="timeframe"
-                {% if embed_mode %}data-trigger-submit="true"{% else %}onchange="this.form.submit()"{% endif %}>
-            <option value="7d" {% if timeframe == '7d' %}selected{% endif %}>Last 7 Days</option>
-            <option value="30d" {% if timeframe == '30d' %}selected{% endif %}>Last 30 Days</option>
-            <option value="90d" {% if timeframe == '90d' %}selected{% endif %}>Last 90 Days</option>
-            <option value="1y" {% if timeframe == '1y' %}selected{% endif %}>Last Year</option>
-        </select>
+        <div class="timeframe-control d-flex align-items-center gap-2 flex-nowrap">
+            <label for="timeframe" class="text-muted small mb-0 flex-shrink-0">Timeframe</label>
+            <select class="form-select analytics-timeframe-select" name="timeframe" id="timeframe"
+                    {% if embed_mode %}data-trigger-submit="true"{% else %}onchange="this.form.submit()"{% endif %}>
+                <option value="7d" {% if timeframe == '7d' %}selected{% endif %}>Last 7 Days</option>
+                <option value="30d" {% if timeframe == '30d' %}selected{% endif %}>Last 30 Days</option>
+                <option value="90d" {% if timeframe == '90d' %}selected{% endif %}>Last 90 Days</option>
+                <option value="1y" {% if timeframe == '1y' %}selected{% endif %}>Last Year</option>
+            </select>
+        </div>
         {% if embed_mode %}
         <input type="hidden" name="embed" value="1">
         {% endif %}
-        <button class="btn btn-gradient btn-sm" type="submit">
+        <button class="btn btn-gradient btn-sm analytics-apply-btn" type="submit">
             Apply
         </button>
     </form>
