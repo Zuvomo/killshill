@@ -9,7 +9,7 @@
 
 .mini-profile-tooltip {
     background: white;
-    border: 2px solid var(--primary);
+    border: 2px solid var(--button-bg);
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     padding: 0;
@@ -31,7 +31,7 @@
 }
 
 .mini-profile-header {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    background: linear-gradient(135deg, var(--button-bg), var(--button-bg));
     color: white;
     padding: 1rem;
     display: flex;
@@ -61,7 +61,7 @@
     display: flex;
     justify-content: space-around;
     padding: 1rem;
-    background: var(--bg-secondary);
+    background: var(--bg-color);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -78,7 +78,7 @@
 .mini-profile-stats .stat-value {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .mini-profile-details {
@@ -91,7 +91,7 @@
     display: flex;
     gap: 0.5rem;
     border-top: 1px solid var(--border-color);
-    background: var(--bg-tertiary);
+    background: var(--card-color);
 }
 
 .mini-profile-actions .btn {
@@ -161,14 +161,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg-secondary);
+    background: var(--bg-color);
 }
 
 .modal-title {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .btn-close {
@@ -185,7 +185,7 @@
 }
 
 .btn-close:hover {
-    color: var(--danger);
+    color: var(--error-color);
 }
 
 .modal-body {
@@ -198,7 +198,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    background: var(--bg-tertiary);
+    background: var(--card-color);
 }
 
 /* =================== */
@@ -211,7 +211,7 @@
 
 .stat-card {
     padding: 1rem;
-    background: var(--bg-secondary);
+    background: var(--bg-color);
     border-radius: 8px;
     border: 1px solid var(--border-color);
 }
@@ -225,13 +225,13 @@
 .stat-value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .stat-value-sm {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-main);
     margin-top: 0.25rem;
 }
 
@@ -261,19 +261,19 @@
 }
 
 .toast-notification.toast-success {
-    border-left: 4px solid var(--success);
+    border-left: 4px solid var(--success-color);
 }
 
 .toast-notification.toast-error {
-    border-left: 4px solid var(--danger);
+    border-left: 4px solid var(--error-color);
 }
 
 .toast-notification.toast-warning {
-    border-left: 4px solid var(--warning);
+    border-left: 4px solid var(--warning-color);
 }
 
 .toast-notification.toast-info {
-    border-left: 4px solid var(--info);
+    border-left: 4px solid var(--button-bg);
 }
 
 .toast-content {
@@ -287,19 +287,19 @@
 }
 
 .toast-success .toast-content i {
-    color: var(--success);
+    color: var(--success-color);
 }
 
 .toast-error .toast-content i {
-    color: var(--danger);
+    color: var(--error-color);
 }
 
 .toast-warning .toast-content i {
-    color: var(--warning);
+    color: var(--warning-color);
 }
 
 .toast-info .toast-content i {
-    color: var(--info);
+    color: var(--button-bg);
 }
 
 /* =================== */
@@ -333,7 +333,7 @@
 }
 
 [data-influencer-id]:hover {
-    color: var(--primary) !important;
+    color: var(--button-bg) !important;
     text-decoration: underline;
 }
 
@@ -348,7 +348,7 @@
 }
 
 .btn-report:hover {
-    color: var(--danger);
+    color: var(--error-color);
 }
 
 /* =================== */
@@ -373,7 +373,7 @@
     width: 3rem;
     height: 3rem;
     border: 0.3rem solid rgba(59, 130, 246, 0.2);
-    border-top-color: var(--primary);
+    border-top-color: var(--button-bg);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -389,12 +389,12 @@
 /* =================== */
 
 .form-control:focus {
-    border-color: var(--primary);
+    border-color: var(--button-bg);
     box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
 }
 
 .form-control.is-invalid {
-    border-color: var(--danger);
+    border-color: var(--error-color);
 }
 
 .form-control.is-invalid:focus {
@@ -457,11 +457,11 @@
 
 [data-theme="dark"] .modal-header,
 [data-theme="dark"] .modal-footer {
-    background: var(--bg-secondary);
+    background: var(--bg-color);
 }
 
 [data-theme="dark"] .stat-card {
-    background: var(--bg-tertiary);
+    background: var(--card-color);
 }
 
 [data-theme="dark"] .loading-overlay {

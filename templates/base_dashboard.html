@@ -2,7 +2,7 @@
 
 {% block extra_css %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/signal-ux-enhancements.css' %}">
+{% load static humanize %}
 <style>
     /* ==================== DASHBOARD LAYOUT ==================== */
     html, body {
@@ -121,8 +121,8 @@
         width: 100vw !important;
         max-width: 100vw !important;
         height: var(--navbar-height) !important;
-        background: oklch(0.17 0.03 180) !important;
-        border-bottom: 1px solid oklch(0.17 0.03 180) !important;
+        background: var(--graphite-dark) !important;
+        border-bottom: 1px solid var(--soft-border) !important;
         z-index: 1000 !important;
         display: flex !important;
         align-items: center !important;
@@ -152,6 +152,7 @@
         font-size: 1.75rem;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
@@ -193,6 +194,7 @@
         align-items: center !important;
         gap: 0.75rem !important;
         margin-left: auto !important;
+        margin-right: 1rem !important;
         flex-shrink: 0 !important;
         height: 100% !important;
     }
@@ -235,6 +237,7 @@
     @media (max-width: 480px) {
         .navbar-actions {
             gap: 0.35rem !important;
+            margin-right: 0.5rem !important;
         }
 
         .navbar-actions .btn {
@@ -276,7 +279,7 @@
         display: flex;
         align-items: center;
         gap: 0.625rem;
-        padding: 0.5rem 0.75rem;
+        /* padding: 0.5rem 0.75rem; */
         background: transparent;
         border: none;
         border-radius: var(--border-radius-sm);
@@ -311,14 +314,14 @@
         bottom: 0 !important;
         width: var(--sidebar-width) !important;
         /* background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.95)) !important; */
-        background-color: oklch(0.17 0.03 180);
+        background-color: var(--graphite-dark);
         border-right: 1px solid rgba(148, 163, 184, 0.08) !important;
         padding: 1.25rem 0 !important;
         overflow-y: auto !important;
         overflow-x: visible !important;
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
         z-index: 999 !important;
-        box-shadow: 12px 0 45px oklch(0.25 0.03 180) !important;
+        box-shadow: var(--shadow) !important;
     }
 
     .sidebar::-webkit-scrollbar {
@@ -434,10 +437,10 @@
     }
 
     .sidebar-nav-link.active {
-        border-color: transparent;
+        border-color: var(--soft-border);
         color: black !important;
-        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.3);
-        background: linear-gradient(to right, #00fc8b, #06ed94, #00dea0);
+        box-shadow:  0 0 0 1px rgba(37, 99, 235, 0.3);
+        background: var(--new-green);
 
     }
 
@@ -619,7 +622,7 @@
 
     .card-header {
         background: var(--bg-secondary) !important;
-        border-bottom: 1px solid var(--border-color) !important;
+        /* border-bottom: 1px solid var(--border-color) !important; */
         color: var(--text-primary) !important;
     }
 
@@ -814,11 +817,13 @@
     .badge.bg-primary {
         background: var(--background) !important;
         color: white !important;
+       
     }
 
     .badge.bg-success {
         background: var(--success) !important;
         color: white !important;
+         padding: 0.3rem;
     }
 
     .badge.bg-danger {
@@ -1010,7 +1015,7 @@
     }
 
     .card .text-muted {
-        color: var(--text-secondary) !important;
+        color: var(--text-muted) !important;
     }
 
     .card .text-success {
@@ -1156,11 +1161,10 @@
         background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(245, 158, 11, 0.05)) !important;
         border: 1px solid rgba(99, 102, 241, 0.2) !important;
     }
-
     .hero-title {
         font-size: 2.5rem;
         font-weight: 700;
-        color: var(--text-primary) !important;
+        color:  var(--text-color) !important;
         margin-bottom: 1rem;
     }
 
@@ -1296,7 +1300,7 @@
     @media (max-width: 768px) {
         html, body {
             max-width: 100vw !important;
-            overflow-x: hidden !important;
+            /* overflow-x: hidden !important; */
         }
 
         .navbar-search {
@@ -1403,7 +1407,7 @@
     @media (max-width: 640px) {
         html, body {
             max-width: 100vw !important;
-            overflow-x: hidden !important;
+            /* overflow-x: hidden !important; */
         }
 
         .top-navbar {
@@ -1514,7 +1518,7 @@
     @media (max-width: 480px) {
         html, body {
             max-width: 100vw !important;
-            overflow-x: hidden !important;
+            /* overflow-x: hidden !important; */
         }
 
         .top-navbar {
@@ -1932,7 +1936,7 @@
         width: 400px;
         max-width: 90vw;
         height: calc(100vh - var(--navbar-height));
-        background: var(--bg-elevated);
+        background: var(--bg-color);
         border-left: 1px solid var(--border-color);
         z-index: 1001;
         transition: right var(--transition-normal);
@@ -1941,8 +1945,10 @@
         box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
     }
 
-    .notification-panel.active {
-        right: 0;
+    @media (min-width: 769px) {
+        .notification-panel.active {
+            right: 0;
+        }
     }
 
     .notification-panel-header {
@@ -2299,8 +2305,18 @@
         }
 
         .notification-panel {
-            width: 100%;
-            max-width: 100vw;
+            position: fixed !important;
+            top: var(--navbar-height) !important;
+            right: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            transform: translateX(100%) !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .notification-panel.active {
+            transform: translateX(0) !important;
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3) !important;
         }
     }
 
@@ -2325,6 +2341,10 @@
             padding: 0 0.875rem 0.875rem;
         }
     }
+    .hero-image {
+        height: 2rem;
+        width: 2rem;
+    }
 </style>
 {% endblock %}
 
@@ -2335,8 +2355,12 @@
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
 
+    
+
     <a href="{% url 'dashboard:home' %}" class="navbar-brand" aria-label="KillShill home">
-        <i class="fas fa-shield-halved" aria-hidden="true"></i>
+        <!-- <i class="fas fa-shield-halved" aria-hidden="true"></i> -->
+         <img src="{% static 'img/killshill_logo.png' %}" alt="AI trader monitoring dashboards"
+                            class="hero-image">
         <span>KillShill</span>
     </a>
 
@@ -2586,18 +2610,18 @@
             <button class="notification-tab" data-tab="signals">Signals</button>
         </div>
         <div class="notification-list" id="notification-list">
-            <!-- Loading State -->
+
             <div class="notification-loading">
                 <div class="skeleton-notification"></div>
                 <div class="skeleton-notification"></div>
                 <div class="skeleton-notification"></div>
             </div>
-            <!-- Empty State -->
+
             <div class="notification-empty" style="display: none;">
                 <i class="fas fa-bell-slash"></i>
                 <p>No notifications yet</p>
             </div>
-            <!-- Notifications will be loaded here via JavaScript -->
+  
         </div>
     </div>
 </div>
@@ -2628,7 +2652,7 @@
             // Large screens: always ensure sidebar is expanded (remove collapsed class and clear localStorage)
             sidebar.classList.remove('collapsed');
             if (sidebarToggle) {
-                {% comment %} sidebarToggle.querySelector('i').className = 'fas fa-chevron-left'; {% endcomment %}
+                // sidebarToggle.querySelector('i').className = 'fas fa-chevron-left';
                 sidebarToggle.setAttribute('aria-expanded', 'true');
             }
             // Clear any stored collapsed state to prevent issues

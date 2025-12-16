@@ -1,11 +1,29 @@
 /* ============================================
    KILL SHILL - UNIFIED THEME FRAMEWORK
    Version: 2.0
-   Description: Standardized UI components and theme
+   Description: Centralized theme system for consistent styling
+
+   🎨 CENTRALIZED THEMING ACHIEVED!
+
+   This system allows you to change colors globally by modifying
+   a single CSS variable. All components (buttons, badges, cards,
+   tables, etc.) will automatically update.
+
+   Quick Theme Changes:
+   • Primary Color: Modify --primary
+   • Success Color: Modify --success
+   • Buttons: All button variants use theme variables
+   • Badges: All badge colors use theme variables
+   • Backgrounds: All backgrounds use theme variables
+
+   Example: Change --primary from #2563eb to #ef4444
+   and ALL primary elements become red instantly!
    ============================================ */
 
 :root {
     /* === PRIMARY COLOR PALETTE === */
+    /* 🎨 CENTRALIZED THEMING: Change these colors to instantly update the entire dashboard! */
+    /* Example: Change --primary to #7c3aed for purple theme, #ef4444 for red theme, etc. */
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --primary-light: #3b82f6;
@@ -47,6 +65,22 @@
     --info: #06b6d4;
     --info-hover: #0891b2;
     --info-light: rgba(6, 182, 212, 0.1);
+
+    /* === BADGE AND COMPONENT SPECIFIC COLORS === */
+    --badge-primary-bg: var(--primary);
+    --badge-secondary-bg: var(--secondary);
+    --badge-success-bg: var(--success);
+    --badge-warning-bg: var(--warning);
+    --badge-danger-bg: var(--danger);
+    --badge-info-bg: var(--info);
+
+    /* Price badge specific colors */
+    --price-badge-actual: var(--success);
+    --price-badge-assumed: var(--warning);
+
+    /* Confidence and metric colors */
+    --confidence-bar-bg: var(--success);
+    --metric-highlight: var(--warning);
     
     /* === NEUTRAL COLORS === */
     --white: #ffffff;
@@ -72,6 +106,18 @@
     --dark-bg-tertiary: #334155;
     --dark-bg-card: #1e293b;
     --dark-bg-hover: #374151;
+
+    /* === KILLSHILL SPECIFIC DARK THEME === */
+    --killshill-dark-bg: #0f1419;
+    --killshill-dark-border: rgba(255, 255, 255, 0.08);
+    --killshill-dark-border-light: rgba(255, 255, 255, 0.1);
+    --killshill-dark-border-lighter: rgba(255, 255, 255, 0.2);
+    --killshill-dark-bg-overlay: rgba(255, 255, 255, 0.02);
+    --killshill-dark-bg-overlay-light: rgba(255, 255, 255, 0.05);
+    --killshill-dark-text-primary: #ffffff;
+    --killshill-dark-text-secondary: rgba(255, 255, 255, 0.6);
+    --killshill-dark-text-muted: rgba(255, 255, 255, 0.4);
+    --killshill-dark-text-disabled: rgba(255, 255, 255, 0.3);
     
     --dark-text-primary: #f8fafc;
     --dark-text-secondary: #cbd5e1;
@@ -445,7 +491,7 @@ a:hover {
 .card-header {
     padding: var(--space-6);
     background: var(--gray-50);
-    border-bottom: 1px solid var(--gray-200);
+    /* border-bottom: 1px solid var(--gray-200); */
 }
 
 .dark-theme .card-header {
@@ -1270,6 +1316,71 @@ a:hover {
 @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   PRICE BADGE COMPONENTS (UNIFIED)
+   ============================================ */
+
+.price-badge {
+    display: inline-block;
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-2);
+    line-height: var(--leading-tight);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.price-badge.actual {
+    background-color: var(--price-badge-actual);
+    color: var(--white);
+}
+
+.price-badge.assumed {
+    background-color: var(--price-badge-assumed);
+    color: var(--white);
+}
+
+/* Table context adjustments */
+td .price-badge,
+.table .price-badge {
+    margin-top: var(--space-1);
+}
+
+/* Signal detail page context */
+.data-value .price-badge {
+    margin-left: var(--space-2);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .price-badge {
+        font-size: 0.65rem;
+        padding: 1px var(--space-1);
+        margin-left: var(--space-1);
+        min-width: 35px;
+    }
+
+    .data-value .price-badge {
+        margin-left: 0;
+        margin-top: var(--space-1);
+    }
+}
+
+@media (max-width: 576px) {
+    .price-badge {
+        font-size: 0.6rem;
+        padding: 1px var(--space-1);
+        min-width: 30px;
+    }
 }
 
 /* ============================================

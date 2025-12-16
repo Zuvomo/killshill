@@ -24,33 +24,42 @@
 {% block content %}
 <div class="dashboard-home">
     <!-- Hero Section -->
-    <section id="section-dashboard" class="hero-banner mb-4">
-        <div class="hero-panel row g-0 align-items-center">
+    <section id="section-dashboard" class="hero-banner mb-4 position-relative"
+        style="background-image: url('{% static 'img/SignalH.png' %}'); background-size: cover; background-position: right; background-repeat: no-repeat;">
+        <div class="bg-radial"></div>
+        <div class="bg-highlight"></div>
+        <div class="hero-panel row g-0 align-items-center relative">
+
             <div class="col-lg-6 order-2 order-lg-1">
                 <div class="hero-content p-4 p-xl-5">
-                    <p class="hero-eyebrow text-uppercase mb-2 text-green-gradient-from">Live Intelligence</p>
+                    <!-- <p class="hero-eyebrow text-uppercase mb-2 text-green-gradient-from">Live Intelligence</p> -->
+                    <p class="badge1 badge1-signal">
+                        <i class="bi bi-lightning"></i>
+                        Live Intelligence
+                    </p>
+
                     <h1 class="hero-title mb-3">
                         Kill Shill
                     </h1>
                     <p class="hero-subtitle mb-4">
-                        Track which traders really deliver. Proof, accuracy, and win-rate, live.
+                        We Expose The Truth In Every Call. Live And Unforgiving
                     </p>
 
                     <div class="hero-stats">
                         <p class="hero-metric-line mb-2">
                             <span class="hero-number hero-blue">{{ total_influencers|default:0|intcomma }}+</span>
-                            influencers tracked with
+                            Calls Processed
                         </p>
                         <p class="hero-metric-line">
                             <span class="hero-number hero-green">{{ total_trade_calls|default:0|intcomma }}+</span>
-                            calls analyzed using <span class="hero-highlight-text">AI-verified results</span>
+                            Audited Through Our AI Truth System
                         </p>
                     </div>
 
                     <div class="hero-actions d-flex flex-column flex-md-row gap-3">
                         <a href="{% url 'dashboard:search' %}" class="btn btn-lg btn-gradient">
                             <i class="fas fa-search me-2"></i>
-                            Analyze an Influencer
+                            Analyze An Influencer
                         </a>
                         <a href="{% url 'dashboard:leaderboard' %}" class="btn btn-lg btn-outline-gradient">
                             <span class="live-dot"></span>
@@ -61,39 +70,96 @@
                 </div>
             </div>
             <div class="col-lg-6 order-1 order-lg-2">
-                <div class="hero-visual text-center px-4 py-5">
+                <!-- <div class="hero-visual text-center px-4 py-5">
                     <div class="hero-image-frame shadow-lg">
                         <img src="{% static 'img/hero-ai-trader.jpg' %}" alt="AI trader monitoring dashboards"
                             class="hero-image">
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </section>
 
     <!-- KOL Leaderboard -->
-    <div id="section-leaderboard" class="card mb-4 overflow-hidden">
+    <div id="section-leaderboard" class="section mb-4 overflow-hidden">
         <div class="card-header leaderboard-header d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="leaderboard-heading d-flex align-items-center gap-2">
-                <span class="leaderboard-icon" aria-hidden="true">📊</span>
-                <h5 class="card-title mb-0">KOL Leaderboard</h5>
+            <div class="leaderboard-heading ">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="leaderboard-icon" aria-hidden="true">📊</span>
+                    <h5 class="card-title mb-0">KOL Leaderboard</h5>
+                </div>
+                <h6 class="card-title mb-0 text-muted">The market’s real scorecard.</h6>
             </div>
             <div class="leaderboard-filters d-flex align-items-center gap-2 flex-wrap">
                 <div class="leaderboard-filter-buttons d-flex gap-2 flex-wrap">
-                    <button class="leaderboard-filter active" data-category="all" onclick="filterLeaderboard('all', this)">All</button>
-                    <button class="leaderboard-filter" data-category="crypto" onclick="filterLeaderboard('crypto', this)">Crypto</button>
-                    <button class="leaderboard-filter" data-category="stocks" onclick="filterLeaderboard('stocks', this)">Stocks</button>
-                    <button class="leaderboard-filter" data-category="forex" onclick="filterLeaderboard('forex', this)">Forex</button>
-                    <a href="{% url 'dashboard:leaderboard' %}" class="leaderboard-filter more">
+                    <button class="leaderboard-filter active" data-category="all"
+                        onclick="filterLeaderboard('all', this)">All</button>
+                    <button class="leaderboard-filter" data-category="crypto"
+                        onclick="filterLeaderboard('crypto', this)">Crypto</button>
+                    <button class="leaderboard-filter" data-category="stocks"
+                        onclick="filterLeaderboard('stocks', this)">Stocks</button>
+                    <button class="leaderboard-filter" data-category="forex"
+                        onclick="filterLeaderboard('forex', this)">Forex</button>
+                    <!-- <a href="{% url 'dashboard:leaderboard' %}" class="leaderboard-filter more">
                         <i class="fas fa-filter"></i>
                         More Filters
-                    </a>
+                    </a> -->
                 </div>
                 <span class="leaderboard-live-pill">
                     <span class="live-dot"></span>
                     Updated Live
                 </span>
             </div>
+        </div>
+        <div class="">
+            <form method="get" class="container-fluid">
+                <div class="row g-3 align-items-end pb-4 bb-custom">
+
+                    <!-- Category -->
+                    <div class="col-12 col-sm-6 col-lg-3 ">
+                        <label class="text-muted small mb-1">Category</label>
+                        <select name="category" class="leaderboard-select1 form-select">
+                            <option value="all">All</option>
+                            <option value="crypto">Crypto</option>
+                            <option value="stocks">Stocks</option>
+                            <option value="forex">Forex</option>
+                        </select>
+                    </div>
+
+                    <!-- Platform -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="text-muted small mb-1">Platform</label>
+                        <select name="platform" class="leaderboard-select1 form-select">
+                            <option value="all">All</option>
+                            <option value="Twitter">X (Twitter)</option>
+                            <option value="Telegram">Telegram</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="TikTok">TikTok</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Frame -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="text-muted small mb-1">Time Frame</label>
+                        <select name="timeframe" class="leaderboard-select1 form-select">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="all">All time</option>
+                        </select>
+                    </div>
+
+                    <!-- Apply Button -->
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <button type="submit" class="btn btn-gradient w-100 leaderboard-apply mt-4 mt-lg-0">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+
+
         </div>
         <div class="card-body p-0">
             <div class="table-responsive home-leaderboard-table">
@@ -137,7 +203,7 @@
                                             {{ item.influencer.channel_name }}
                                         </a>
                                         <div class="influencer-handle">
-                                           @{{ item.influencer.author_name|default:'username' }}
+                                            @{{ item.influencer.author_name|default:'username' }}
                                         </div>
                                     </div>
                                 </div>
@@ -167,17 +233,18 @@
                             </td>
                             <td class="d-none d-md-table-cell">
                                 <div class="metric-stack">
-                                    <span class="metric-primary text-primary">{{ item.total_calls|intcomma }}</span>
+                                    <span class="metric-primary">{{ item.total_calls|intcomma }}</span>
                                     <span class="metric-label">Total Calls</span>
                                 </div>
                             </td>
                             <td>
-                                <div class="confidence-meter d-flex flex-row align-items-center justify-content-between" >
+                                <div
+                                    class="confidence-meter d-flex flex-row align-items-center justify-content-between">
                                     <div class="confidence-bar mb-0">
                                         <span style="width: {{ item.confidence_value|default:0 }}%;"></span>
                                     </div>
-                                        
-                                            <span class="metric-primary">{{ item.confidence_value }}%</span>
+
+                                    <span class="metric-primary">{{ item.confidence_value }}%</span>
 
                                 </div>
                             </td>
@@ -197,14 +264,14 @@
     </div>
 
     <!-- Trending KOLs by Category -->
-    <div id="section-trending" class="card mb-4 trending-section overflow-hidden">
+    <div id="section-trending" class="section mb-4 trending-section overflow-hidden">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
                 <h5 class="card-title mb-0">
                     <i class="fas fa-fire text-warning"></i>
                     Trending KOLs by Category
                 </h5>
-                {% comment %} <p class="card-subtitle">Discover top performers across different markets</p> 
+                {% comment %} <p class="card-subtitle">Discover top performers across different markets</p>
                 {% endcomment %}
             </div>
         </div>
@@ -308,7 +375,7 @@
     </div>
 
     <!-- Top Signals Preview -->
-    <div id="section-signals" class="card mb-4 top-signals-card overflow-hidden">
+    <div id="section-signals" class="section mb-4 top-signals-card overflow-hidden">
         <div class="card-header signals-header d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="signals-title-section">
                 <h5 class="card-title mb-0">
@@ -346,10 +413,12 @@
                                     {% elif signal.platform == 'TikTok' %}
                                     <i class="fab fa-tiktok"></i> TikTok
                                     {% else %}
-                                    <i class="fas fa-globe"></i> {{ signal.platform|default:'Signal' }}
-                                    {% endif %}
+                                    <i class="fas fa-globe"></i> {{ signal.platform|default:'Signal' }} {% endif %} 
+                               
                                 </span>
-                                <span class="badge badge-outline signal-status1">{{ signal.status|default:'Signal'}}</span>
+                                <span class="badge badge-outline signal-status1">
+                                    {{signal.status|default:'Signal'}}
+                                </span>
                             </div>
                             <div class="signal-body">
                                 <div class="signal-meta">

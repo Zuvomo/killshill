@@ -190,10 +190,10 @@
                 <tbody>
                     {% for performer in top_performers %}
                     <tr>
-                        <td><span class="badge bg-primary">{{ performer.rank }}</span></td>
+                        <td><span class="text-white">{{ performer.rank }}</span></td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="avatar-circle bg-background text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
+                                <div class="avatar-circle bg-background rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;">
                                     {{ performer.name|default:'?'|first|upper }}
                                 </div>
                                 <div>
