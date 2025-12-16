@@ -1,0 +1,590 @@
+{% extends 'base_dashboard.html' %}
+{% load static humanize %}
+
+{% block title %}Dashboard - KillShill{% endblock %}
+
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block page_subtitle %}
+<p class="page-subtitle">Track which traders really deliver. Proof, accuracy, and win-rate, live.</p>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'dashboard:submit_influencer' %}" class="btn btn-gradient">
+    <i class="fas fa-plus-circle"></i>
+    Submit Influencer
+</a>
+<a href="{% url 'dashboard:leaderboard' %}" class="btn btn-outline">
+    <i class="fas fa-trophy"></i>
+    View Leaderboard
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-home">
+    <!-- Hero Section -->
+    <section id="section-dashboard" class="hero-banner mb-4">
+        <div class="hero-panel row g-0 align-items-center">
+            <div class="col-lg-6 order-2 order-lg-1">
+                <div class="hero-content p-4 p-xl-5">
+                    <p class="hero-eyebrow text-uppercase mb-2 text-green-gradient-from">Live Intelligence</p>
+                    <h1 class="hero-title mb-3">
+                        Kill Shill
+                    </h1>
+                    <p class="hero-subtitle mb-4">
+                        Track which traders really deliver. Proof, accuracy, and win-rate, live.
+                    </p>
+
+                    <div class="hero-stats">
+                        <p class="hero-metric-line mb-2">
+                            <span class="hero-number hero-blue">{{ total_influencers|default:0|intcomma }}+</span>
+                            influencers tracked with
+                        </p>
+                        <p class="hero-metric-line">
+                            <span class="hero-number hero-green">{{ total_trade_calls|default:0|intcomma }}+</span>
+                            calls analyzed using <span class="hero-highlight-text">AI-verified results</span>
+                        </p>
+                    </div>
+
+                    <div class="hero-actions d-flex flex-column flex-md-row gap-3">
+                        <a href="{% url 'dashboard:search' %}" class="btn btn-lg btn-gradient">
+                            <i class="fas fa-search me-2"></i>
+                            Analyze an Influencer
+                        </a>
+                        <a href="{% url 'dashboard:leaderboard' %}" class="btn btn-lg btn-outline-gradient">
+                            <span class="live-dot"></span>
+                            <i class="fas fa-eye ms-1 me-1"></i>
+                            See Live Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 order-1 order-lg-2">
+                <div class="hero-visual text-center px-4 py-5">
+                    <div class="hero-image-frame shadow-lg">
+                        <img src="{% static 'img/hero-ai-trader.jpg' %}" alt="AI trader monitoring dashboards"
+                            class="hero-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- KOL Leaderboard -->
+    <div id="section-leaderboard" class="card mb-4 overflow-hidden">
+        <div class="card-header leaderboard-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="leaderboard-heading d-flex align-items-center gap-2">
+                <span class="leaderboard-icon" aria-hidden="true">📊</span>
+                <h5 class="card-title mb-0">KOL Leaderboard</h5>
+            </div>
+            <div class="leaderboard-filters d-flex align-items-center gap-2 flex-wrap">
+                <div class="leaderboard-filter-buttons d-flex gap-2 flex-wrap">
+                    <button class="leaderboard-filter active" data-category="all" onclick="filterLeaderboard('all', this)">All</button>
+                    <button class="leaderboard-filter" data-category="crypto" onclick="filterLeaderboard('crypto', this)">Crypto</button>
+                    <button class="leaderboard-filter" data-category="stocks" onclick="filterLeaderboard('stocks', this)">Stocks</button>
+                    <button class="leaderboard-filter" data-category="forex" onclick="filterLeaderboard('forex', this)">Forex</button>
+                    <a href="{% url 'dashboard:leaderboard' %}" class="leaderboard-filter more">
+                        <i class="fas fa-filter"></i>
+                        More Filters
+                    </a>
+                </div>
+                <span class="leaderboard-live-pill">
+                    <span class="live-dot"></span>
+                    Updated Live
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive home-leaderboard-table">
+                <table class="table leaderboard-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Influencer</th>
+                            <th>Accuracy</th>
+                            <th class="d-none d-lg-table-cell">Category</th>
+                            <th class="d-none d-xl-table-cell">Platforms</th>
+                            <th class="d-none d-xl-table-cell">Median RR</th>
+                            <th class="d-none d-xl-table-cell">Median TT</th>
+                            <th class="d-none d-md-table-cell">Total Calls</th>
+                            <th>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    Confidence
+                                    <i class="fas fa-question-circle text-muted small" data-bs-toggle="tooltip"
+                                        title="Clopper-Pearson CI – conservative statistical confidence."></i>
+                                </span>
+                            </th>
+                            <th class="d-none d-md-table-cell">Watchlist</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in leaderboard_preview %}
+                        <tr class="leaderboard-row" data-category="{{ item.category|lower }}">
+                            <td class="rank-cell">
+                                <div class="rank-number">{{ forloop.counter }}</div>
+                            </td>
+                            <td>
+                                <div class="influencer-cell">
+                                    <div class="influencer-avatar">
+                                        {{ item.influencer.channel_name|first|upper|default:'?' }}
+                                    </div>
+                                    <div>
+                                        <a class="influencer-name"
+                                            data-influencer-id="{{ item.influencer.influencer_id }}"
+                                            href="{% url 'dashboard:influencer_profile' item.influencer.influencer_id %}">
+                                            {{ item.influencer.channel_name }}
+                                        </a>
+                                        <div class="influencer-handle">
+                                           @{{ item.influencer.author_name|default:'username' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="metric-positive">{{ item.accuracy }}%</span>
+                            </td>
+                            <td class="d-none d-lg-table-cell">
+                                <span class="leaderboard-pill">{{ item.category }}</span>
+                            </td>
+                            <td class="d-none d-xl-table-cell">
+                                <div class="platform-chips">
+                                    <span class="leaderboard-pill">{{ item.influencer.platform|default:'X' }}</span>
+                                </div>
+                            </td>
+                            <td class="d-none d-xl-table-cell">
+                                <div class="metric-stack">
+                                    <span class="metric-primary">{{ item.risk_reward }}x</span>
+                                    <span class="metric-label">Risk:Reward</span>
+                                </div>
+                            </td>
+                            <td class="d-none d-xl-table-cell">
+                                <div class="metric-stack">
+                                    <span class="metric-primary ">{{ item.time_to_target }}</span>
+                                    <span class="metric-label">Time to Target</span>
+                                </div>
+                            </td>
+                            <td class="d-none d-md-table-cell">
+                                <div class="metric-stack">
+                                    <span class="metric-primary text-primary">{{ item.total_calls|intcomma }}</span>
+                                    <span class="metric-label">Total Calls</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="confidence-meter d-flex flex-row align-items-center justify-content-between" >
+                                    <div class="confidence-bar mb-0">
+                                        <span style="width: {{ item.confidence_value|default:0 }}%;"></span>
+                                    </div>
+                                        
+                                            <span class="metric-primary">{{ item.confidence_value }}%</span>
+
+                                </div>
+                            </td>
+
+                            <td>
+                                <button class="leaderboard-save-btn" data-watchlist-btn data-icon-only="true"
+                                    data-influencer-id="{{ item.influencer.influencer_id }}" title="Save to Watchlist">
+                                    <i class="far fa-star"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trending KOLs by Category -->
+    <div id="section-trending" class="card mb-4 trending-section overflow-hidden">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-fire text-warning"></i>
+                    Trending KOLs by Category
+                </h5>
+                {% comment %} <p class="card-subtitle">Discover top performers across different markets</p> 
+                {% endcomment %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 g-xl-4">
+                <!-- Top Crypto Analysts -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="trending-category-card trending-category-crypto">
+                        <div class="trending-category-header">
+                            <h6 class="mb-0">Top Crypto Analysts</h6>
+                            <span class="badge badge-ghost">Crypto</span>
+                        </div>
+                        <div class="trending-list">
+                            {% for item in crypto_influencers %}
+                            <div class="trending-entry">
+                                <div class="trending-rank">#{{ forloop.counter }}</div>
+                                <div class="trending-user">
+                                    <a class="trending-name"
+                                        href="{% url 'dashboard:influencer_profile' item.influencer.influencer_id %}">
+                                        {{ item.influencer.channel_name }}
+                                    </a>
+                                    <span class="trending-handle">
+                                        @{{ item.influencer.author_name|default:'username'}}
+                                    </span>
+                                </div>
+                                <div class="trending-stats">
+                                    <span class="trending-accuracy text-green-500 fw-bold">{{ item.accuracy }}%</span>
+                                    <span class="trending-calls text-muted">{{ item.total_calls|intcomma }} calls</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="trending-empty text-center">No crypto analysts yet</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Market Experts -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="trending-category-card trending-category-stocks">
+                        <div class="trending-category-header">
+                            <h6 class="mb-0">Stock Market Experts</h6>
+                            <span class="badge badge-secondary">Stocks</span>
+                        </div>
+                        <div class="trending-list">
+                            {% for item in stocks_influencers %}
+                            <div class="trending-entry">
+                                <div class="trending-rank">#{{ forloop.counter }}</div>
+                                <div class="trending-user">
+                                    <a class="trending-name"
+                                        href="{% url 'dashboard:influencer_profile' item.influencer.influencer_id %}">
+                                        {{ item.influencer.channel_name }}
+                                    </a>
+                                    <span class="trending-handle">
+                                        @{{ item.influencer.author_name|default:'username'}}</span>
+                                </div>
+                                <div class="trending-stats">
+                                    <span class="trending-accuracy text-green-500 fw-bold">{{ item.accuracy }}%</span>
+                                    <span class="trending-calls text-muted">{{ item.total_calls|intcomma }} calls</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="trending-empty text-center">No stock analysts yet</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forex Specialists -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="trending-category-card trending-category-forex">
+                        <div class="trending-category-header">
+                            <h6 class="mb-0">Forex Specialists</h6>
+                            <span class="badge badge-outline">Forex</span>
+                        </div>
+                        <div class="trending-list">
+                            {% for item in forex_influencers %}
+                            <div class="trending-entry">
+                                <div class="trending-rank">#{{ forloop.counter }}</div>
+                                <div class="trending-user">
+                                    <a class="trending-name"
+                                        href="{% url 'dashboard:influencer_profile' item.influencer.influencer_id %}">
+                                        {{ item.influencer.channel_name }}
+                                    </a>
+                                    <span class="trending-handle">
+                                        @{{ item.influencer.author_name|default:'username'}}</span>
+                                </div>
+                                <div class="trending-stats">
+                                    <span class="trending-accuracy text-green-500 fw-bold">{{ item.accuracy }}%</span>
+                                    <span class="trending-calls text-muted">{{ item.total_calls|intcomma }} calls</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="trending-empty text-center">No forex specialists yet</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Signals Preview -->
+    <div id="section-signals" class="card mb-4 top-signals-card overflow-hidden">
+        <div class="card-header signals-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="signals-title-section">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bullseye text-danger"></i>
+                    Top Signals
+                </h5>
+                {% comment %} <p class="card-subtitle">Latest high-confidence calls from verified influencers</p>
+                {% endcomment %}
+            </div>
+            <a href="{% url 'dashboard:signals' %}" class="btn btn-gradient btn-sm signals-view-all-btn">
+                View All Signals
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="card-body">
+            {% if signals_preview %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 g-xl-4">
+                {% for signal in signals_preview|slice:":4" %}
+                <div class="col">
+                    <a href="{% url 'dashboard:signal_detail' signal.id %}" class="signal-tile-link">
+                        <article class="signal-tile">
+                            <div class="signal-thumb">
+                                {% if signal.preview_image %}
+                                <img src="{{ signal.preview_image }}" alt="{{ signal.asset_symbol }} signal preview">
+                                {% else %}
+                                <div class="signal-thumb-fallback">{{ signal.asset_symbol|first|default:'S' }}</div>
+                                {% endif %}
+                                <span class="signal-platform ">
+                                    {% if signal.platform == 'Twitter' or signal.platform == 'X' %}
+                                    <i class="fab fa-x-twitter"></i> X
+                                    {% elif signal.platform == 'Telegram' %}
+                                    <i class="fab fa-telegram-plane"></i> Telegram
+                                    {% elif signal.platform == 'YouTube' %}
+                                    <i class="fab fa-youtube"></i> YouTube
+                                    {% elif signal.platform == 'TikTok' %}
+                                    <i class="fab fa-tiktok"></i> TikTok
+                                    {% else %}
+                                    <i class="fas fa-globe"></i> {{ signal.platform|default:'Signal' }}
+                                    {% endif %}
+                                </span>
+                                <span class="badge badge-outline signal-status1">{{ signal.status|default:'Signal'}}</span>
+                            </div>
+                            <div class="signal-body">
+                                <div class="signal-meta">
+                                    <div class="avatar-circle avatar-circle-sm signal-avatar">
+                                        {{ signal.influencer_name|first|upper|default:'?' }}
+                                    </div>
+                                    <div class="meta-text">
+                                        <strong>{{ signal.influencer_name|truncatechars:18 }}</strong>
+                                        {% if signal.influencer_handle %}
+                                        <span>@{{ signal.influencer_handle }}</span>
+                                        {% elif signal.influencer_name %}
+                                        <span>{{ signal.influencer_name|truncatechars:20 }}</span>
+                                        {% else %}
+                                        <span>Unknown</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="signal-time">{{ signal.time_ago|default:'just now' }}</span>
+                                </div>
+                                <div class="signal-title">{{ signal.asset_symbol }} • {{signal.direction|default:'Signal'}}</div>
+                                {% if signal.platform == 'YouTube' or signal.platform == 'TikTok' %}
+                                <div class="signal-text video-note">
+                                    Video signal — open to see the breakdown.
+                                </div>
+                                {% else %}
+                                <p class="signal-text">
+                                    {{ signal.signal_text|default:'Click to view signal details' }}
+                                </p>
+                                {% endif %}
+                                <div class="signal-tags">
+                                    {% if signal.risk %}
+                                    <span class="badge badge-outline signal-tag">Risk {{ signal.risk }}</span>
+                                    {% endif %}
+                                    {% if signal.target_price %}
+                                    <span class="badge badge-ghost signal-tag">Target {{ signal.target_price }}</span>
+                                    {% endif %}
+                                    <span class="badge badge-outline signal-tag">Signal</span>
+                                </div>
+                                <div class="signal-footer">
+                                    <span class="signal-cta">View details</span>
+                                    <i class="fas fa-arrow-up-right-from-square"></i>
+                                </div>
+                            </div>
+                        </article>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="signal-empty-direct text-center">
+                <i class="fas fa-bullseye mb-3"></i>
+                <h6>No recent signals available</h6>
+                <p class="mb-0">New verified calls will appear here as soon as they are tracked.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Insights Embed -->
+    <section id="section-insights" class="embedded-section mb-4"
+        data-fragment-url="{% url 'dashboard:insights' %}?embed=1">
+        <div class="embedded-loading">
+            <i class="fas fa-wave-square me-2"></i> Loading insights...
+        </div>
+    </section>
+
+    <!-- Analytics Embed -->
+    <section id="section-analytics" class="embedded-section mb-5"
+        data-fragment-url="{% url 'dashboard:analytics' %}?embed=1">
+        <div class="embedded-loading">
+            <i class="fas fa-chart-line me-2"></i> Loading analytics...
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filter leaderboard by category
+    function filterLeaderboard(category, buttonEl) {
+        const buttons = document.querySelectorAll('.filter-pill[data-category]');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        if (buttonEl) {
+            buttonEl.classList.add('active');
+        }
+
+        const tableBody = document.querySelector('.dark-table tbody');
+        const rows = tableBody ? tableBody.querySelectorAll('tr[data-category]') : [];
+        let matches = 0;
+
+        rows.forEach(row => {
+            const rowCategory = row.getAttribute('data-category');
+            const shouldShow = category === 'all' || rowCategory === category;
+            row.style.display = shouldShow ? '' : 'none';
+            if (shouldShow) {
+                matches++;
+            }
+        });
+
+        let emptyRow = tableBody ? tableBody.querySelector('tr.empty-row') : null;
+        if (!emptyRow && tableBody) {
+            emptyRow = document.createElement('tr');
+            emptyRow.className = 'leaderboard-empty-row';
+            emptyRow.innerHTML = `
+            <td colspan="9" class="text-center text-muted py-5">
+                <div class="empty-state-icon mb-3">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h6>No influencers to show</h6>
+                <p class="mb-0">Try another filter or add more KOLs.</p>
+            </td>
+        `;
+            tableBody.appendChild(emptyRow);
+        }
+
+        if (emptyRow) {
+            emptyRow.style.display = matches === 0 ? '' : 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        filterLeaderboard('all', document.querySelector('[data-category="all"]'));
+
+        if (window.bootstrap) {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+                new bootstrap.Tooltip(el);
+            });
+        }
+
+        // Auto-refresh data every 30 seconds (placeholder)
+        setInterval(function () {
+            console.log('Auto-refreshing dashboard data...');
+            // Here you would call your API to refresh dashboard data
+        }, 30000);
+
+        loadEmbeddedSections();
+        initHomeNavHighlights();
+    });
+
+    function loadEmbeddedSections() {
+        document.querySelectorAll('[data-fragment-url]').forEach(container => {
+            const url = container.getAttribute('data-fragment-url');
+            if (!url) return;
+            fetchEmbeddedSection(container, url);
+        });
+    }
+
+    function fetchEmbeddedSection(container, url) {
+        container.classList.add('is-loading');
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                container.dataset.currentFragmentUrl = url;
+                executeEmbeddedScripts(container);
+                wireEmbeddedForms(container);
+                maybeRecenterHash(container);
+            })
+            .catch(() => {
+                container.innerHTML = '<div class="embedded-loading text-danger">Failed to load section.</div>';
+            });
+    }
+
+    function executeEmbeddedScripts(container) {
+        const scripts = Array.from(container.querySelectorAll('script'));
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
+    function wireEmbeddedForms(container) {
+        container.querySelectorAll('form[data-embed-form]').forEach(form => {
+            const submitEmbed = () => submitEmbeddedForm(form, container);
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                submitEmbed();
+            });
+            form.querySelectorAll('[data-trigger-submit]').forEach(element => {
+                element.addEventListener('change', event => {
+                    event.preventDefault();
+                    submitEmbed();
+                });
+            });
+        });
+    }
+
+    function submitEmbeddedForm(form, container) {
+        const formData = new FormData(form);
+        if (!formData.has('embed')) {
+            formData.append('embed', '1');
+        }
+        const params = new URLSearchParams(formData);
+        const action = form.getAttribute('action') || container.getAttribute('data-fragment-url');
+        const url = action + (action.includes('?') ? '&' : '?') + params.toString();
+        fetchEmbeddedSection(container, url);
+    }
+
+    function maybeRecenterHash(container) {
+        if (!window.location.hash) return;
+        const targetId = window.location.hash.replace('#', '');
+        if (container.id !== targetId) return;
+        requestAnimationFrame(() => {
+            const navbar = document.querySelector('.top-navbar');
+            const offset = (navbar ? navbar.offsetHeight : 0) + 24;
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+            window.scrollTo({ top, behavior: 'auto' });
+        });
+    }
+
+    function initHomeNavHighlights() {
+        if (!document.querySelector('.dashboard-home')) return;
+        const navLinks = Array.from(document.querySelectorAll('.sidebar-nav-link[data-home-target]'));
+        if (!navLinks.length) return;
+
+        const setActive = (targetId, manual = false) => {
+            navLinks.forEach(link => {
+                const matches = link.dataset.homeTarget === targetId;
+                link.classList.toggle('active', matches);
+            });
+        };
+
+        const initialHash = (window.location.hash || '#section-dashboard').replace('#', '');
+        setActive(initialHash);
+
+        document.addEventListener('home-nav-manual-jump', (event) => {
+            if (event.detail?.target) {
+                setActive(event.detail.target, true);
+            }
+        });
+    }
+</script>
+{% endblock %}

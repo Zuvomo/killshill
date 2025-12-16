@@ -1,0 +1,624 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Submit Influencer - KillShill{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <h1 class="page-title">
+        <i class="fas fa-user-plus text-primary me-2"></i>
+        Submit Influencer
+    </h1>
+    <p class="page-description">Submit trading influencers for verification and inclusion in our database</p>
+</div>
+
+    <!-- Submission Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small mb-1">Your Submissions</div>
+                        <div class="h4 mb-0 fw-bold">{{ user_submissions|default:0 }}</div>
+                    </div>
+                    <div class="text-primary">
+                        <i class="fas fa-paper-plane fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small mb-1">Approved</div>
+                        <div class="h4 mb-0 fw-bold text-success">{{ approved_submissions|default:0 }}</div>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small mb-1">Pending Review</div>
+                        <div class="h4 mb-0 fw-bold text-warning">{{ pending_submissions|default:0 }}</div>
+                    </div>
+                    <div class="text-warning">
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small mb-1">Auto-Approved Rate</div>
+                        <div class="h4 mb-0 fw-bold text-info">{{ auto_approval_rate|default:0 }}%</div>
+                    </div>
+                    <div class="text-info">
+                        <i class="fas fa-magic fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submission Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Influencer Submission Form
+                    </h5>
+                    <small class="text-muted">All fields marked with * are required</small>
+                </div>
+                <div class="card-body">
+                    <form id="influencerSubmissionForm" method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Platform Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="platform" class="form-label fw-semibold">
+                                    Platform *
+                                    <i class="fas fa-question-circle ms-1" data-bs-toggle="tooltip" 
+                                       title="Select the primary platform where this influencer is most active"></i>
+                                </label>
+                                <select class="form-select" id="platform" name="platform" required>
+                                    <option value="">Choose platform...</option>
+                                    {% comment %} <option value="telegram"> Telegram</option> {% endcomment %}
+                                    <option value="twitter"> X (Twitter)</option>
+                                    <option value="tiktok"> TikTok</option>
+                                    <option value="youtube"> YouTube</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="categories" class="form-label fw-semibold">
+                                    Trading Categories *
+                                    <i class="fas fa-question-circle ms-1" data-bs-toggle="tooltip" 
+                                       title="Select all categories this influencer covers (can select multiple)"></i>
+                                </label>
+                                <div class="category-checkboxes">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="categories" value="crypto" id="cat-crypto">
+                                        <label class="form-check-label" for="cat-crypto">
+                                            Crypto Currency
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="categories" value="stocks" id="cat-stocks">
+                                        <label class="form-check-label" for="cat-stocks">
+                                            Stock
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="categories" value="forex" id="cat-forex">
+                                        <label class="form-check-label" for="cat-forex">
+                                            Forex
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="channel_name" class="form-label fw-semibold">
+                                    Channel/Account Name *
+                                    <i class="fas fa-question-circle ms-1" data-bs-toggle="tooltip" 
+                                       title="The display name or channel name (e.g., @CryptoKing)"></i>
+                                </label>
+                                <input type="text" class="form-control" id="channel_name" name="channel_name" 
+                                       placeholder="e.g., CryptoMaster, @bitcoinsignals" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="author_name" class="form-label fw-semibold">
+                                    Author/Real Name
+                                    <i class="fas fa-question-circle ms-1" data-bs-toggle="tooltip" 
+                                       title="Real name of the person (if publicly known)"></i>
+                                </label>
+                                <input type="text" class="form-control" id="author_name" name="author_name" 
+                                       placeholder="e.g., John Doe (Optional)">
+                            </div>
+                        </div>
+
+                        <!-- Profile URL -->
+                        <div class="mb-4">
+                            <label for="url" class="form-label fw-semibold">
+                                Profile URL *
+                                <i class="fas fa-question-circle ms-1" data-bs-toggle="tooltip" 
+                                   title="Direct link to their profile/channel"></i>
+                            </label>
+                            <input type="url" class="form-control" id="url" name="url" 
+                                   placeholder="https://t.me/cryptosignals or https://twitter.com/username" required>
+                            <div class="form-text">
+                                <i class="fas fa-magic me-1 text-primary"></i>
+                                We'll automatically extract follower count, verify account status, and check if it meets our approval threshold
+                            </div>
+                        </div>
+
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">
+                                Description & Background
+                                <i class="fas fa-question-circle ms-1" data-bs-toggle="tooltip" 
+                                   title="Tell us more about this influencer's background and content"></i>
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Describe their trading background, content style, and why they should be tracked. Include any notable achievements or unique characteristics..."></textarea>
+                            <div class="form-text">
+                                <span id="charCount">0</span>/500 characters
+                            </div>
+                        </div>
+
+
+                        <!-- Submission Guidelines Checkbox -->
+                        <div class="mb-4">
+                            <div class="form-check p-3 border rounded" style="background-color: rgba(37, 99, 235, 0.05); border-color: var(--primary-color) !important;">
+                                <input class="form-check-input" type="checkbox" id="agree_guidelines" name="agree_guidelines" required>
+                                <label class="form-check-label fw-semibold" for="agree_guidelines">
+                                    <i class="fas fa-shield-check text-primary me-2"></i>
+                                    I confirm that:
+                                </label>
+                                <ul class="mt-2 mb-0 text-sm">
+                                    <li>This influencer provides genuine crypto trading signals/advice</li>
+                                    <li>I have verified their profile URL is correct and active</li>
+                                    <li>I understand false submissions may result in account restrictions</li>
+                                    <li>I agree to the <a href="#" class="text-primary">Submission Guidelines</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-outline-secondary me-md-2" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i>Reset Form
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Submit for Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with Tips -->
+        <div class="col-lg-4">
+            <!-- Auto-Approval Tips -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-magic text-warning me-2"></i>Auto-Approval Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3">
+                            <div class="badge bg-success rounded-pill">1</div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">High Follower Count</h6>
+                            <small class="text-muted">Influencers with 10,000+ followers are more likely to be auto-approved</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3">
+                            <div class="badge bg-success rounded-pill">2</div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Verified Accounts</h6>
+                            <small class="text-muted">Verified social media accounts get priority approval</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3">
+                            <div class="badge bg-success rounded-pill">3</div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Active Engagement</h6>
+                            <small class="text-muted">High engagement rates increase approval chances</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <div class="badge bg-success rounded-pill">4</div>
+                        </div>
+                        <div>
+                            <h6 class="mb-1">Complete Information</h6>
+                            <small class="text-muted">Fill all optional fields for better approval odds</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Submissions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>Your Recent Submissions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_submissions %}
+                        {% for submission in recent_submissions %}
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                            <div class="me-3">
+                                {% if submission.status == 'approved' %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% elif submission.status == 'rejected' %}
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                {% else %}
+                                    <i class="fas fa-clock text-warning"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ submission.channel_name }}</h6>
+                                <small class="text-muted">
+                                    {{ submission.platform }} • {{ submission.created_at|timesince }} ago
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                            <small>No submissions yet</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guidelines Modal -->
+<div class="modal fade" id="guidelinesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>Submission Guidelines
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-check-circle me-2"></i>What We Accept
+                        </h6>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Active crypto trading signal providers
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Technical analysts with public track records
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Educational content creators with trading insights
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Influencers with verifiable performance history
+                            </li>
+                        </ul>
+
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-times-circle me-2"></i>What We Don't Accept
+                        </h6>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2">
+                                <i class="fas fa-times text-danger me-2"></i>
+                                Scam or pump-and-dump schemes
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-times text-danger me-2"></i>
+                                Inactive or abandoned accounts
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-times text-danger me-2"></i>
+                                General crypto news without trading signals
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-times text-danger me-2"></i>
+                                Private or paid-only signal providers
+                            </li>
+                        </ul>
+
+                        <h6 class="text-info mb-3">
+                            <i class="fas fa-magic me-2"></i>Auto-Approval Criteria
+                        </h6>
+                        <div class="alert alert-info">
+                            <strong>Instant Approval Requirements</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Telegram, Twitter, TikTok or YouTube profile with verified follower count</li>
+                                <li>Minimum <strong>1,000 followers/subscribers</strong> (auto-verified via Apify)</li>
+                                <li>Public profile URL (no private or paywalled channels)</li>
+                                <li>Complete submission details (category, description, supporting evidence)</li>
+                            </ul>
+                            <p class="mt-3 mb-0 small text-muted">
+                                Profiles below the follower threshold are automatically rejected so reviewers can focus on high-signal creators.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-2"></i>Understood
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Character counter for description
+    const descriptionField = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
+    
+    descriptionField.addEventListener('input', function() {
+        const count = this.value.length;
+        charCount.textContent = count;
+        if (count > 500) {
+            charCount.style.color = 'var(--danger-color)';
+        } else {
+            charCount.style.color = 'var(--text-muted)';
+        }
+    });
+    
+    // URL validation and follower detection
+    const urlField = document.getElementById('url');
+    const followerField = document.getElementById('follower_count');
+    
+    urlField.addEventListener('blur', async function() {
+        const url = this.value.trim();
+        if (url) {
+            // Show loading state
+            this.style.borderColor = 'var(--warning-color)';
+            
+            try {
+                // Attempt to extract follower count from URL
+                await detectFollowerCount(url);
+            } catch (error) {
+                console.log('Could not auto-detect follower count');
+            }
+            
+            // Reset border
+            this.style.borderColor = 'var(--border-color)';
+        }
+    });
+    
+    // Category validation
+    function validateCategories() {
+        const checkboxes = document.querySelectorAll('input[name="categories"]:checked');
+        const categoryContainer = document.querySelector('.category-checkboxes');
+        
+        if (checkboxes.length === 0) {
+            // Add error styling
+            categoryContainer.style.border = '1px solid var(--danger-color)';
+            categoryContainer.style.borderRadius = '4px';
+            categoryContainer.style.padding = '8px';
+            return false;
+        } else {
+            // Remove error styling
+            categoryContainer.style.border = 'none';
+            categoryContainer.style.padding = '0';
+            return true;
+        }
+    }
+
+    // Form submission
+    const form = document.getElementById('influencerSubmissionForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validate categories
+        if (!validateCategories()) {
+            showAlert('danger', 'Please select at least one trading category');
+            return;
+        }
+        
+        // Show loading state with detailed feedback
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying profile...';
+        submitBtn.disabled = true;
+        
+        // Show verification progress
+        setTimeout(() => {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking follower count...';
+        }, 1000);
+        
+        setTimeout(() => {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing submission...';
+        }, 2000);
+        
+        try {
+            const formData = new FormData(form);
+            
+            // Debug: Check if CSRF token is in FormData
+            const csrfInForm = formData.get('csrfmiddlewaretoken');
+            console.log('CSRF token in FormData:', csrfInForm ? 'Yes' : 'No');
+            
+            if (!csrfInForm) {
+                // Manually add CSRF token if not present
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                if (csrfToken) {
+                    formData.set('csrfmiddlewaretoken', csrfToken);
+                    console.log('Manually added CSRF token');
+                } else {
+                    throw new Error('CSRF token not found');
+                }
+            }
+            
+            const response = await fetch('{% url "dashboard:submit_influencer" %}', {
+                method: 'POST',
+                body: formData
+                // Don't set headers, let the browser handle it automatically with FormData
+            });
+            
+            if (!response.ok) {
+                if (response.status === 403) {
+                    throw new Error('CSRF token validation failed. Please refresh the page and try again.');
+                } else {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const status = (data.status || '').toLowerCase();
+                const submissionId = data.submission_id;
+                const approvalScore = data.approval_score || 0;
+                
+                // Create detailed success message
+                let message = '';
+                if (status === 'approved') {
+                    message = `✅ <strong>Automatically Approved!</strong><br>
+                              Submission ID: ${submissionId}<br>
+                              Approval Score: ${approvalScore}/100<br>
+                              ${data.message || 'This influencer has been added to our database.'}`;
+                    showAlert('success', message);
+                } else if (status === 'rejected') {
+                    message = `❌ <strong>Submission Rejected</strong><br>
+                              Submission ID: ${submissionId}<br>
+                              Reason: ${data.reason || 'Did not meet minimum criteria'}`;
+                    showAlert('warning', message);
+                } else {
+                    message = `📝 <strong>Submission Received</strong><br>
+                              Submission ID: ${submissionId}<br>
+                              Status: Under Review<br>
+                              ${data.message || 'We will review your submission and notify you of the decision.'}`;
+                    showAlert('info', message);
+                }
+                
+                // Show verification details if available
+                if (data.verification_data && data.verification_data.followers) {
+                    const verificationMsg = `📊 Verification: ${data.verification_data.followers.toLocaleString()} followers detected`;
+                    setTimeout(() => showAlert('info', verificationMsg), 1000);
+                }
+                
+                form.reset();
+                charCount.textContent = '0';
+                
+                // Reload after longer delay to let user read messages
+                setTimeout(() => location.reload(), 4000);
+            } else {
+                showAlert('danger', `❌ <strong>Submission Failed</strong><br>${data.message || 'Please try again or contact support.'}`);
+            }
+        } catch (error) {
+            console.error('Submission error:', error);
+            if (error.message.includes('CSRF token')) {
+                showAlert('danger', `🔒 <strong>Security Error</strong><br>${error.message}`);
+            } else {
+                showAlert('danger', `🚫 <strong>Network Error</strong><br>${error.message || 'Please check your connection and try again.'}`);
+            }
+        } finally {
+            // Reset button
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit for Review';
+            submitBtn.disabled = false;
+        }
+    });
+});
+
+async function detectFollowerCount(url) {
+    // This would normally make an API call to extract follower count
+    // For now, we'll just simulate it
+    const patterns = {
+        telegram: /t\.me\/([^\/]+)/,
+        twitter: /twitter\.com\/([^\/]+)/,
+        tiktok: /tiktok\.com\/@([^\/]+)/,
+        youtube: /youtube\.com\/(channel\/|c\/|@)([^\/]+)/
+    };
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In a real implementation, this would call your backend API
+    console.log('Detecting follower count for:', url);
+}
+
+function resetForm() {
+    document.getElementById('influencerSubmissionForm').reset();
+    document.getElementById('charCount').textContent = '0';
+}
+
+function showAlert(type, message) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert" style="margin: 1rem 0;">
+            <div>${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Insert at top of main content area
+    const pageHeader = document.querySelector('.page-header');
+    if (pageHeader) {
+        pageHeader.insertAdjacentHTML('afterend', alertHtml);
+    } else {
+        const container = document.querySelector('.container-fluid');
+        container.insertAdjacentHTML('afterbegin', alertHtml);
+    }
+    
+    // Auto-dismiss after 8 seconds for longer messages
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            if (alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                try {
+                    bsAlert.close();
+                } catch (e) {
+                    // Alert might already be closed
+                }
+            }
+        });
+    }, 8000);
+}
+</script>
+{% endblock %}

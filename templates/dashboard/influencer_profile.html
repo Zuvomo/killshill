@@ -1,0 +1,330 @@
+{% extends 'base_dashboard.html' %}
+{% load price_filters %}
+
+{% block title %}{{ influencer.channel_name|default:'Influencer Profile' }} - KillShill{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item"><a href="{% url 'dashboard:leaderboard' %}">Leaderboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {{ influencer.channel_name|default:'Influencer' }}
+        </li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+</div>
+<a href="{% url 'dashboard:search' %}" class="btn btn-primary">
+    <i class="fas fa-search"></i> Search for Influencers
+</a>
+{% else %}
+<!-- Profile Header -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="avatar-circle avatar-circle-lg hero-gradient-primary">
+                    {{ influencer.channel_name|first|upper|default:'?' }}
+                </div>
+            </div>
+            <div class="col">
+                <h2 class="mb-1">{{ influencer.channel_name|default:influencer.author_name|default:'Unknown Influencer' }}</h2>
+                <p class="text-muted mb-2 d-flex flex-wrap align-items-center gap-2">
+                    {% if influencer.author_name %}
+                        <span class="fw-semibold">@{{ influencer.author_name }}</span>
+                    {% endif %}
+                    {% if influencer.platform %}
+                        <span class="badge bg-primary text-uppercase">{{ influencer.platform }}</span>
+                    {% endif %}
+                </p>
+                {% if influencer.url %}
+                <a href="{{ influencer.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt"></i> Visit Profile
+                </a>
+                {% endif %}
+                <button class="btn btn-sm btn-outline-gradient ms-2" data-watchlist-btn data-influencer-id="{{ influencer.influencer_id }}">
+                    <i class="far fa-star"></i> Save
+                </button>
+                <button class="btn btn-sm btn-gradient ms-2" onclick="showReportModal('profile', {{ influencer.influencer_id }}, '{{ influencer.channel_name }}')">
+                    <i class="fas fa-flag"></i> Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line stats-icon text-primary"></i>
+                <h3 class="mt-2 mb-1">{{ total_calls|default:'0' }}</h3>
+                <p class="text-muted mb-0">Total Calls</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-bullseye stats-icon text-success"></i>
+                <h3 class="mt-2 mb-1 text-success">{{ accuracy|default:'0' }}%</h3>
+                <p class="text-muted mb-0">Accuracy</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar stats-icon text-warning"></i>
+                <h3 class="mt-2 mb-1">{{ avg_return|default:'0' }}%</h3>
+                <p class="text-muted mb-0">Avg Return</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-fire stats-icon text-danger"></i>
+                <h3 class="mt-2 mb-1">{{ recent_wins }}W-{{ recent_losses }}L</h3>
+                <p class="text-muted mb-0">Last 7 Days</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Breakdown -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie text-primary"></i>
+                    Performance Breakdown
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="performance-stat">
+                            <div class="performance-label">Successful</div>
+                            <div class="performance-value text-success">{{ successful_calls }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="performance-stat">
+                            <div class="performance-label">Failed</div>
+                            <div class="performance-value text-danger">{{ failed_calls }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="performance-stat">
+                            <div class="performance-label">Active</div>
+                            <div class="performance-value text-warning">{{ active_calls|default:'0' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-coins text-warning"></i>
+                    Top Assets
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for asset in top_assets %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ asset.asset__symbol|default:'N/A' }}</strong>
+                        <small class="text-muted">{{ asset.asset__name|default:'' }}</small>
+                    </div>
+                    <span class="badge bg-primary">{{ asset.count }} calls</span>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center">No data available</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Signals -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-signal text-info"></i>
+            Recent Signals
+        </h5>
+        <button class="btn btn-sm btn-gradient" onclick="showSimulationModal({{ influencer.influencer_id }}, '{{ influencer.channel_name }}')">
+            <i class="fas fa-calculator"></i> Simulate Returns
+        </button>
+    </div>
+    <div class="card-body">
+        {% for signal in recent_signals %}
+        <div class="recent-signal mb-3">
+            <div class="recent-signal-header d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="recent-signal-symbol">{{ signal.call.asset.symbol|default:'Unknown' }}</span>
+                        <span class="badge recent-signal-badge badge-{{ signal.badge_class }}">{{ signal.status }}</span>
+                        <span class="text-muted small">{{ signal.time_ago }}</span>
+                    </div>
+                    <div class="recent-signal-meta">
+                        {% if signal.call.signal %}{{ signal.call.signal|upper }} · {% endif %}
+                        {{ signal.call.asset.name|default:'Asset' }}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <a href="{% url 'dashboard:signal_detail' signal.call.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </div>
+            </div>
+            <div class="row text-center g-3 recent-signal-metrics">
+                <div class="col-6 col-md-3">
+                    <div class="metric-label text-muted small">Entry</div>
+                    <div class="metric-value">
+                        {% if signal.call.assumed_entry_price %}
+                            {{ signal.call.assumed_entry_price|format_price }}
+                        {% elif signal.call.entry_price %}
+                            {{ signal.call.entry_price }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-label text-muted small">Target</div>
+                    <div class="metric-value text-success">
+                        {% if signal.call.target_first %}
+                            {{ signal.call.target_first|format_price }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-label text-muted small">Stop Loss</div>
+                    <div class="metric-value text-danger">
+                        {% if signal.call.stoploss_price %}
+                            {{ signal.call.stoploss_price|format_price }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-label text-muted small">Status</div>
+                    <div class="metric-value text-capitalize">{{ signal.status }}</div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center py-4">No recent signals available</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.avatar-circle-lg {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+}
+
+.stats-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stats-icon {
+    font-size: 24px;
+    opacity: 0.9;
+}
+
+.performance-stat {
+    padding: 1rem;
+}
+
+.performance-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.performance-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.signal-item {
+    transition: all 0.2s ease;
+}
+
+.signal-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.recent-signal {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.recent-signal:hover {
+    border-color: rgb(13 35 31);
+    transform: translateX(4px);
+}
+
+.recent-signal-symbol {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.recent-signal-badge {
+    font-size: 0.75rem;
+}
+
+.recent-signal-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.recent-signal-metrics .metric-value {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.recent-signal-metrics .metric-label {
+    letter-spacing: 0.5px;
+}
+</style>
+{% endblock %}

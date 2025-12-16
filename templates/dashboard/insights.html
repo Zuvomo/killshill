@@ -1,0 +1,12 @@
+{% extends 'base_dashboard.html' %}
+{% load humanize %}
+
+{% block title %}Insights Dashboard - KillShill{% endblock %}
+
+{% block content %}
+{% include 'dashboard/partials/insights_content.html' %}
+{% endblock %}
+
+{% block extra_js %}
+{% include 'dashboard/partials/insights_scripts.html' %}
+{% endblock %}

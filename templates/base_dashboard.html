@@ -1,0 +1,3031 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/signal-ux-enhancements.css' %}">
+<style>
+    /* ==================== DASHBOARD LAYOUT ==================== */
+    html, body {
+        overflow-x: hidden !important;
+        scroll-behavior: smooth !important;
+        max-width: 100vw !important;
+    }
+
+    .dashboard-container {
+        display: flex !important;
+        min-height: 100vh !important;
+        padding-top: var(--navbar-height) !important;
+        position: relative !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Smooth scrollbar for main content */
+    .main-content::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .main-content::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 4px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+        transition: background var(--transition-fast);
+    }
+
+    .main-content::-webkit-scrollbar-thumb:hover {
+        background: var(--bg-secondary);
+    }
+
+    /* Prevent any page-specific CSS from affecting layout - Maximum specificity */
+    html body .sidebar {
+        position: fixed !important;
+        left: 0 !important;
+        z-index: 999 !important;
+        width: var(--sidebar-width) !important;
+        top: var(--navbar-height) !important;
+        bottom: 0 !important;
+    }
+
+    html body .sidebar.collapsed {
+        width: var(--sidebar-collapsed-width) !important;
+    }
+
+    html body .dashboard-container {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    /* Desktop only - sidebar margin */
+    @media (min-width: 1025px) {
+        html body .main-content {
+            margin-left: var(--sidebar-width) !important;
+            width: calc(100% - var(--sidebar-width)) !important;
+            max-width: calc(100vw - var(--sidebar-width)) !important;
+        }
+
+        html body .sidebar.collapsed ~ .dashboard-container .main-content,
+        html body .sidebar.collapsed + .sidebar-overlay + .dashboard-container .main-content {
+            margin-left: var(--sidebar-collapsed-width) !important;
+            width: calc(100% - var(--sidebar-collapsed-width)) !important;
+            max-width: calc(100vw - var(--sidebar-collapsed-width)) !important;
+        }
+    }
+
+    /* Mobile - no sidebar margin */
+    @media (max-width: 1024px) {
+        html body .dashboard-container {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+
+        html body .main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+        }
+
+        html body .top-navbar {
+            left: 0 !important;
+            width: 100vw !important;
+        }
+    }
+
+    /* Ensure sidebar content doesn't overflow or get distorted */
+    html body .sidebar * {
+        box-sizing: border-box;
+    }
+
+    html body .sidebar .sidebar-nav {
+        width: 100%;
+        padding-left: 1rem !important;
+    }
+
+    html body .sidebar .sidebar-nav-link {
+        width: 100%;
+    }
+
+    /* ==================== NAVBAR ==================== */
+    .top-navbar,
+    html body .top-navbar,
+    html body nav.top-navbar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: var(--navbar-height) !important;
+        background: oklch(0.17 0.03 180) !important;
+        border-bottom: 1px solid oklch(0.17 0.03 180) !important;
+        z-index: 1000 !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 1.5rem !important;
+        transition: all var(--transition-normal) !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+         box-shadow: 12px 0 45px oklch(0.25 0.03 180) !important;
+    }
+
+    .navbar-brand,
+    html body .navbar-brand,
+    html body .top-navbar .navbar-brand {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        font-family: var(--font-display) !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        color: var(--text-primary) !important;
+        text-decoration: none !important;
+        margin-right: 2rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .navbar-brand i {
+        font-size: 1.75rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .navbar-search {
+        flex: 1;
+        max-width: 500px;
+        position: relative;
+    }
+
+    .navbar-search input {
+        width: 100%;
+        padding: 0.625rem 1rem 0.625rem 2.5rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        transition: all var(--transition-fast);
+    }
+
+    .navbar-search input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--bg-primary);
+    }
+
+    .navbar-search i {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-tertiary);
+    }
+
+    .navbar-actions,
+    html body .navbar-actions,
+    html body .top-navbar .navbar-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+        height: 100% !important;
+    }
+
+    .nav-action-btn,
+    html body .nav-action-btn,
+    html body .top-navbar .nav-action-btn {
+        position: relative !important;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+        border-radius: var(--border-radius-sm) !important;
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-secondary) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all var(--transition-fast) !important;
+        flex-shrink: 0 !important;
+        overflow: visible !important;
+        font-size: 1.125rem !important;
+    }
+
+    /* Mobile - larger touch targets in navbar */
+    @media (max-width: 768px) {
+        .nav-action-btn,
+        html body .nav-action-btn,
+        html body .top-navbar .nav-action-btn {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            font-size: 1.25rem !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .navbar-actions {
+            gap: 0.35rem !important;
+        }
+
+        .navbar-actions .btn {
+            padding: 0.3rem 0.75rem !important;
+            font-size: 0.8rem !important;
+        }
+    }
+
+    /* Hide mobile hamburger on desktop */
+    #mobile-menu-toggle {
+        display: none !important;
+    }
+
+    @media (max-width: 1024px) {
+        #mobile-menu-toggle {
+            display: flex !important;
+        }
+    }
+
+    .nav-action-btn:hover,
+    html body .nav-action-btn:hover {
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .nav-action-btn .badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--danger);
+        color: white;
+        font-size: 0.65rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .user-menu-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.5rem 0.75rem;
+        background: transparent;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .user-menu-btn:hover {
+        background: var(--bg-secondary);
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar,
+    html body .sidebar,
+    html body aside.sidebar {
+        position: fixed !important;
+        left: 0 !important;
+        top: var(--navbar-height) !important;
+        bottom: 0 !important;
+        width: var(--sidebar-width) !important;
+        /* background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.95)) !important; */
+        background-color: oklch(0.17 0.03 180);
+        border-right: 1px solid rgba(148, 163, 184, 0.08) !important;
+        padding: 1.25rem 0 !important;
+        overflow-y: auto !important;
+        overflow-x: visible !important;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+        z-index: 999 !important;
+        box-shadow: 12px 0 45px oklch(0.25 0.03 180) !important;
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: var(--text-tertiary);
+    }
+
+    .sidebar.collapsed {
+        width: var(--sidebar-collapsed-width) !important;
+    }
+
+    .sidebar-toggle {
+        position: absolute !important;
+        top: calc(var(--navbar-height) + 1rem) !important;
+        right: -18px !important;
+        width: 34px !important;
+        height: 34px !important;
+        background: rgba(8, 12, 23, 0.95) !important;
+        border: 1px solid rgba(148, 163, 184, 0.22) !important;
+        border-radius: 50% !important;
+        display: none !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        color: rgba(226, 232, 240, 0.85) !important;
+        transition: all 0.25s ease !important;
+        z-index: 1001 !important;
+        box-shadow: 0 12px 26px rgba(2, 6, 23, 0.45) !important;
+        backdrop-filter: blur(6px) !important;
+    }
+    
+    /* Hide sidebar toggle on large screens (desktop) - sidebar always expanded */
+    @media (min-width: 1025px) {
+        .sidebar-toggle {
+            display: none !important;
+        }
+    }
+
+    .sidebar-toggle i {
+        font-size: 0.82rem !important;
+        pointer-events: none !important;
+        transition: transform 0.25s ease !important;
+    }
+
+    .sidebar-nav {
+        list-style: none !important;
+        list-style-type: none !important;
+        padding: 0 1rem !important;
+        margin: 1.25rem 0 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    .sidebar-nav-item {
+        list-style: none !important;
+        list-style-type: none !important;
+    }
+
+    /* Force remove bullets on all child elements */
+    html body .sidebar ul,
+    html body .sidebar ul li,
+    html body .sidebar-nav,
+    html body .sidebar-nav-item {
+        list-style: none !important;
+        list-style-type: none !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    html body .sidebar-nav::before,
+    html body .sidebar-nav-item::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 1rem;
+        color: rgba(226, 232, 240, 0.7);
+        text-decoration: none;
+        border-radius: 13px;
+        transition: all 0.18s ease;
+        font-weight: 500;
+        font-size: 0.92rem;
+        position: relative;
+        border: 1px solid transparent;
+    }
+
+    .sidebar-nav-link:hover {
+        border-color: rgba(148, 163, 184, 0.35);
+        background: rgba(148, 163, 184, 0.12);
+        color: #f8fafc;
+        color: black;
+    }
+
+    .sidebar-nav-link:hover i {
+        transform: translateX(2px);
+    }
+
+    .sidebar-nav-link.active {
+        border-color: transparent;
+        color: black !important;
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.3);
+        background: linear-gradient(to right, #00fc8b, #06ed94, #00dea0);
+
+    }
+
+    .sidebar-nav-link.active::before {
+        content: '';
+        position: absolute;
+        left: -0.4rem;
+        top: 0.45rem;
+        bottom: 0.45rem;
+        width: 3px;
+        border-radius: 999px;
+        background: transparent;
+        /* background: linear-gradient(180deg, #60a5fa, #2563eb); */
+    }
+
+    .sidebar-nav-link i {
+        font-size: 1.05rem;
+        width: 22px;
+        text-align: center;
+        transition: transform 0.2s ease;
+        color: inherit;
+    }
+
+    .sidebar-nav-link:focus-visible {
+        outline: 2px solid rgba(59, 130, 246, 0.7);
+        outline-offset: 2px;
+    }
+
+    .sidebar.collapsed .sidebar-nav-link {
+        justify-content: center;
+        padding: 0.8rem;
+        gap: 0;
+    }
+
+    .sidebar.collapsed .sidebar-nav-link span {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav-link span {
+        opacity: 1;
+        width: auto;
+        transition: opacity 0.2s ease, width 0.2s ease;
+    }
+
+    .sidebar-section-title {
+        padding: 0 1rem;
+        margin: 1.75rem 0 0.875rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-tertiary);
+        position: relative;
+        transition: opacity 0.2s ease;
+    }
+
+    .sidebar-section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -0.5rem;
+        left: 1rem;
+        right: 1rem;
+        height: 1px;
+        background: linear-gradient(90deg, var(--border-color), transparent);
+    }
+
+    .sidebar.collapsed .sidebar-section-title {
+        opacity: 0;
+        height: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    /* Tooltip for collapsed sidebar */
+    .sidebar.collapsed .sidebar-nav-link {
+        position: relative;
+    }
+
+    .sidebar.collapsed .sidebar-nav-link::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%) translateX(8px);
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 1001;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.collapsed .sidebar-nav-link:hover::after {
+        opacity: 1;
+        transform: translateY(-50%) translateX(12px);
+    }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .dashboard-container {
+        width: 100% !important;
+        margin-left: 0 !important;
+        max-width: 100vw !important;
+    }
+
+    .main-content {
+        flex: 1 !important;
+        padding: 2rem !important;
+        min-height: calc(100vh - var(--navbar-height)) !important;
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ensure all direct children respect container width */
+    .main-content > * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ==================== PAGE HEADER ==================== */
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: var(--text-primary) !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-description {
+        color: var(--text-secondary) !important;
+        font-size: 0.9375rem;
+    }
+
+    /* ==================== BOOTSTRAP OVERRIDES ==================== */
+    /* Fix Bootstrap rows overflowing */
+    .row {
+        max-width: 100% !important;
+        margin-left: calc(var(--bs-gutter-x) * -.5) !important;
+        margin-right: calc(var(--bs-gutter-x) * -.5) !important;
+    }
+
+    .row > * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Container fixes */
+    .container,
+    .container-fluid {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    .card {
+        background: var(--bg-elevated) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--border-radius) !important;
+        color: var(--text-primary) !important;
+        transition: transform var(--transition-fast), box-shadow var(--transition-fast) !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .card:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .card-header {
+        background: var(--bg-secondary) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .card-body {
+        color: var(--text-primary) !important;
+    }
+
+    .card-title {
+        color: var(--text-primary) !important;
+        font-weight: 600;
+    }
+
+    .card-text {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Table responsive fixes */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-width: 100% !important;
+    }
+
+    .table {
+        color: var(--text-primary) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table thead th {
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-color) !important;
+        font-weight: 600;
+        padding: 1rem 0.75rem;
+        white-space: nowrap !important;
+    }
+
+    .table tbody td {
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+        /* background-color: var(--bg-elevated) !important; */
+        background-color: var( --bg-secondary) !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background: var(--bg-secondary) !important;
+    }
+
+    /* Fix table striped rows */
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: var(--bg-elevated) !important;
+    }
+    
+    .table-striped tbody tr:nth-of-type(even) {
+        background-color: var(--bg-secondary) !important;
+    }
+
+    /* Override Bootstrap table row background */
+    .table tbody tr,
+    .table tbody tr:nth-child(odd),
+    .table tbody tr:nth-child(even) {
+        /* background-color: var(--bg-elevated) !important; */
+        background-color: var(--bg-primary) !important;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--bg-tertiary) !important;
+    }
+
+    /* Image responsive fixes */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Prevent any element from causing overflow */
+    * {
+        box-sizing: border-box !important;
+    }
+
+    /* Fix for any absolute positioned elements */
+    .position-absolute {
+        max-width: 100% !important;
+    }
+
+    .table-hover > tbody > tr:hover > * {
+    --bs-table-hover-bg: #0f2722 !important;   /* background color */
+    --bs-table-hover-color: #fff !important; /* text color */
+}
+
+    .btn {
+        border-radius: var(--border-radius-sm);
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        transition: all var(--transition-fast);
+    }
+
+    .btn-primary {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: white !important;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
+        color: white !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-primary {
+        background: transparent !important;
+        border: 1px solid var(--accent) !important;
+        color: var(--primary) !important;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-outline-primary:hover,
+    .btn-outline-primary:focus {
+        background: var(--accent) !important;
+        border-color: var(--background) !important;
+        color: var(--primary) !important;
+    }
+
+    .btn-secondary {
+        background: var(--secondary) !important;
+        border-color: var(--secondary) !important;
+        color: white !important;
+    }
+
+    .btn-secondary:hover {
+        background: var(--secondary-dark) !important;
+        border-color: var(--secondary-dark) !important;
+        color: white !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background: var(--success) !important;
+        border-color: var(--success) !important;
+        color: white !important;
+    }
+
+    .btn-success:hover {
+        background: var(--success-dark) !important;
+        border-color: var(--success-dark) !important;
+        color: white !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: var(--danger) !important;
+        border-color: var(--danger) !important;
+        color: white !important;
+    }
+
+    .btn-danger:hover {
+        background: var(--danger-dark) !important;
+        border-color: var(--danger-dark) !important;
+        color: white !important;
+        transform: translateY(-1px);
+    }
+
+    /* Focus states for accessibility */
+    .btn:focus,
+    .btn:focus-visible {
+        outline: 2px solid var(--primary) !important;
+        outline-offset: 2px !important;
+    }
+
+    .nav-action-btn:focus,
+    .nav-action-btn:focus-visible {
+        outline: 2px solid var(--primary) !important;
+        outline-offset: 2px !important;
+    }
+
+    .sidebar-toggle:focus,
+    .sidebar-toggle:focus-visible {
+        outline: 2px solid white !important;
+        outline-offset: 2px !important;
+    }
+
+    .badge {
+        padding: 0.35em 0.65em;
+        font-weight: 600;
+        border-radius: 0.375rem;
+    }
+
+    .badge.bg-primary {
+        background: var(--background) !important;
+        color: white !important;
+    }
+
+    .badge.bg-success {
+        background: var(--success) !important;
+        color: white !important;
+    }
+
+    .badge.bg-danger {
+        background: var(--danger) !important;
+        color: white !important;
+    }
+
+    .badge.bg-warning {
+        background: var(--warning) !important;
+        color: var(--text-inverse) !important;
+    }
+
+    .badge.bg-secondary {
+        background: var(--bg-tertiary) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .form-control, .form-select {
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: var(--border-radius-sm);
+        padding: 0.625rem 0.875rem !important;
+        font-size: 0.9375rem !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background: var(--bg-primary) !important;
+        border-color: var(--primary) !important;
+        color: var(--text-primary) !important;
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
+    }
+
+    /* Mobile form improvements */
+    @media (max-width: 768px) {
+        .form-control, .form-select {
+            min-height: 44px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 1rem !important;
+            border-radius: 8px !important;
+        }
+
+        .form-label {
+            font-size: 0.9375rem !important;
+            margin-bottom: 0.375rem !important;
+        }
+
+        textarea.form-control {
+            min-height: 100px !important;
+        }
+    }
+
+    .form-label {
+        color: var(--text-primary) !important;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .input-group-text {
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-secondary) !important;
+    }
+
+    .dropdown-menu {
+        background: var(--bg-elevated) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--border-radius) !important;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .dropdown-item {
+        color: var(--text-primary) !important;
+        padding: 0.5rem 1rem;
+    }
+
+    .dropdown-item:hover {
+        background: var(--bg-secondary) !important;
+        color: var(--primary) !important;
+    }
+
+    .dropdown-divider {
+        border-top-color: var(--border-color) !important;
+    }
+
+    .alert {
+        border-radius: var(--border-radius);
+        border: none;
+        padding: 1rem 1.25rem;
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: var(--success) !important;
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: var(--danger) !important;
+    }
+
+    .alert-warning {
+        background: rgba(245, 158, 11, 0.1) !important;
+        color: var(--warning) !important;
+    }
+
+    .alert-info {
+        background: rgba(6, 182, 212, 0.1) !important;
+        color: var(--info) !important;
+    }
+
+    /* ==================== TEXT UTILITIES ==================== */
+    .text-muted {
+        color: var(--text-secondary) !important;
+    }
+
+    small, .small {
+        color: var(--text-secondary) !important;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-primary) !important;
+    }
+
+    p {
+        color: var(--text-secondary) !important;
+    }
+
+    a {
+        color: var(--primary) !important;
+    }
+
+    a:hover {
+        color: var(--primary-dark) !important;
+    }
+
+    /* ==================== SPECIFIC ELEMENT FIXES ==================== */
+    /* Badge text visibility */
+    .badge {
+        color: white !important;
+    }
+
+    .badge.bg-primary,
+    .badge.bg-success,
+    .badge.bg-danger,
+    .badge.bg-info,
+    .badge.bg-warning {
+        color: white !important;
+    }
+
+    .badge.badge-primary {
+        background: var(--primary) !important;
+        color: white !important;
+    }
+
+    .badge.badge-success {
+        background: var(--success) !important;
+        color: white !important;
+    }
+
+    .badge.badge-danger {
+        background: var(--danger) !important;
+        color: white !important;
+    }
+
+    .badge.badge-warning {
+        background: var(--warning) !important;
+        color: white !important;
+    }
+
+    .badge.badge-info {
+        background: var(--info) !important;
+        color: white !important;
+    }
+
+    .badge.badge-secondary {
+        background: var(--gray-500) !important;
+        color: white !important;
+    }
+
+    /* Ensure all spans in badges are visible */
+    .badge span {
+        color: inherit !important;
+    }
+
+    /* Card text elements */
+    .card .fw-bold {
+        color: var(--text-primary) !important;
+    }
+
+    .card .text-muted {
+        color: var(--text-secondary) !important;
+    }
+
+    .card .text-success {
+        color: var(--success) !important;
+    }
+
+    .card .text-danger {
+        color: var(--danger) !important;
+    }
+
+    .card .text-warning {
+        color: var(--warning) !important;
+    }
+
+    .card .text-info {
+        color: var(--info) !important;
+    }
+
+    /* Status badges in cards */
+    .card-body .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+    }
+
+    /* Button text visibility */
+    .btn span {
+        color: inherit !important;
+    }
+
+    .btn i {
+        color: inherit !important;
+    }
+
+    /* Ensure small text is visible */
+    .small, small {
+        font-size: 0.875em;
+    }
+
+    /* List items and div text */
+    .card-body div {
+        color: var(--text-primary);
+    }
+
+    .card-body .d-flex span {
+        color: var(--text-primary) !important;
+        font-size: 0.8rem;
+    }
+
+    /* Specific fixes for stat cards */
+    .stat-number,
+    .hero-stat-number {
+        color: var(--text-primary) !important;
+        font-weight: 700;
+    }
+
+    .stat-label,
+    .hero-stat-label {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Avatar circles and profile icons */
+    .avatar-circle {
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white !important;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .avatar-circle-sm {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .avatar-circle-md {
+        width: 48px;
+        height: 48px;
+        font-size: 1.125rem;
+    }
+
+    .avatar-circle-lg {
+        width: 64px;
+        height: 64px;
+        font-size: 1.5rem;
+    }
+
+    /* Hero gradient variants */
+    .hero-gradient-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+    }
+
+    .hero-gradient-success {
+        background: linear-gradient(135deg, var(--success), var(--success-dark)) !important;
+    }
+
+    .hero-gradient-warning {
+        background: linear-gradient(135deg, var(--secondary), var(--secondary-dark)) !important;
+    }
+
+    .hero-gradient-info {
+        background: linear-gradient(135deg, var(--info), #14b8a6) !important;
+    }
+
+    /* Fix for inline style avatars in cards */
+    .card-body div[style*="border-radius: 50%"] {
+        color: white !important;
+    }
+
+    .card div[style*="border-radius: 50%"] {
+        color: white !important;
+    }
+
+    /* Ensure gradient backgrounds show properly */
+    div[style*="linear-gradient"] {
+        color: white !important;
+    }
+
+    /* Icon placeholder styles */
+    .icon-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--border-radius);
+        background: rgba(99, 102, 241, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary);
+    }
+
+    .icon-placeholder-lg {
+        width: 120px;
+        height: 120px;
+        font-size: 3rem;
+    }
+
+    /* Hero card styles */
+    .card.hero-gradient-primary {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(245, 158, 11, 0.05)) !important;
+        border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary) !important;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary) !important;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary) !important;
+        line-height: 1;
+    }
+
+    .hero-stat-number.warning {
+        color: var(--secondary) !important;
+    }
+
+    .hero-stat-number.success {
+        color: var(--success) !important;
+    }
+
+    .hero-stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary) !important;
+        margin-top: 0.25rem;
+    }
+
+    /* Card subtitle */
+    .card-subtitle {
+        font-size: 0.875rem;
+        color: var(--text-secondary) !important;
+        margin-top: 0.25rem;
+    }
+
+    /* Mobile Overlay */
+    .sidebar-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(4px) !important;
+        z-index: 998 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 0.3s ease, backdrop-filter 0.3s ease !important;
+        display: none !important;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1 !important;
+        pointer-events: all !important;
+        display: block !important;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1024px) {
+        .sidebar {
+            transform: translateX(-100%) !important;
+            box-shadow: none !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .sidebar.active {
+            transform: translateX(0) !important;
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* Sidebar toggle only on mobile/tablet */
+        .sidebar-toggle {
+            display: flex !important;
+            top: 0.75rem !important;
+            right: -12px !important;
+        }
+
+        .main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            transition: none !important;
+            overflow-x: hidden !important;
+            padding: 1.25rem !important;
+        }
+
+        .navbar-search {
+            max-width: 300px;
+        }
+
+        /* Mobile overlay for sidebar */
+        .sidebar-overlay {
+            transition: opacity 0.3s ease !important;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1 !important;
+            pointer-events: all !important;
+        }
+
+        /* Prevent body scroll when sidebar is open */
+        body.sidebar-open {
+            overflow: hidden !important;
+            max-width: 100vw !important;
+        }
+
+        /* Fix rows and columns on mobile */
+        .row {
+            margin-left: -0.5rem !important;
+            margin-right: -0.5rem !important;
+        }
+
+        .row > * {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        /* Touch-friendly buttons on tablet */
+        .btn {
+            min-height: 44px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.9375rem !important;
+        }
+
+        .btn-sm {
+            min-height: 38px !important;
+            padding: 0.5rem 0.875rem !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        html, body {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        .navbar-search {
+            display: none !important;
+        }
+
+        .navbar-actions {
+            gap: 0.5rem !important;
+        }
+
+        .navbar-actions .btn {
+            padding: 0.35rem 0.85rem !important;
+            font-size: 0.85rem !important;
+            min-height: 36px !important;
+            white-space: nowrap !important;
+        }
+
+        .main-content {
+            padding: 1.125rem !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        .page-title {
+            font-size: 1.5rem !important;
+            word-wrap: break-word !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .page-description {
+            font-size: 0.9375rem !important;
+        }
+
+        .page-header {
+            margin-bottom: 1.25rem !important;
+            max-width: 100% !important;
+        }
+
+        .card {
+            margin-bottom: 1rem !important;
+            max-width: 100% !important;
+            border-radius: 10px !important;
+        }
+
+        .card-body {
+            padding: 1.125rem !important;
+        }
+
+        .card-header {
+            padding: 0.875rem 1.125rem !important;
+        }
+
+        /* Better card spacing on tablets */
+        .row {
+            margin-left: -0.5rem !important;
+            margin-right: -0.5rem !important;
+            max-width: 100% !important;
+        }
+
+        .row > * {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            max-width: 100% !important;
+        }
+
+        /* Stack columns nicely */
+        .col-lg-3, .col-lg-4, .col-lg-6, .col-lg-8,
+        .col-md-3, .col-md-4, .col-md-6, .col-md-8 {
+            margin-bottom: 1rem !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Make tables scrollable horizontally on tablets */
+        .table-responsive {
+            display: block !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        /* Touch-friendly buttons */
+        .btn {
+            min-height: 44px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.9375rem !important;
+            border-radius: 8px !important;
+        }
+
+        .btn-sm {
+            min-height: 38px !important;
+            padding: 0.5rem 0.875rem !important;
+            font-size: 0.875rem !important;
+        }
+
+        .btn-lg {
+            min-height: 52px !important;
+            padding: 0.875rem 1.5rem !important;
+            font-size: 1.0625rem !important;
+        }
+    }
+
+    @media (max-width: 640px) {
+        html, body {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        .top-navbar {
+            padding: 0 1rem !important;
+            max-width: 100vw !important;
+        }
+
+        .navbar-brand span {
+            display: none !important;
+        }
+
+        .user-menu-btn span {
+            display: none !important;
+        }
+
+        .main-content {
+            padding: 1rem !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        .page-title {
+            font-size: 1.375rem !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.3 !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .page-description {
+            font-size: 0.9375rem !important;
+            word-wrap: break-word !important;
+            line-height: 1.5 !important;
+        }
+
+        .page-header {
+            margin-bottom: 1rem !important;
+        }
+
+        /* Mobile-optimized cards */
+        .card {
+            max-width: 100% !important;
+            border-radius: 12px !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .card-body {
+            padding: 1rem !important;
+        }
+
+        .card-header {
+            padding: 0.875rem 1rem !important;
+            font-size: 0.9375rem !important;
+        }
+
+        /* Touch-friendly buttons for mobile */
+        .btn {
+            min-height: 44px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.9375rem !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+        }
+
+        .btn-sm {
+            min-height: 38px !important;
+            padding: 0.5rem 0.875rem !important;
+            font-size: 0.875rem !important;
+        }
+
+        .btn-lg {
+            min-height: 52px !important;
+            padding: 0.875rem 1.5rem !important;
+            font-size: 1.0625rem !important;
+        }
+
+        /* Responsive tables */
+        .table {
+            font-size: 0.875rem !important;
+            display: block !important;
+            overflow-x: auto !important;
+        }
+
+        .table th, .table td {
+            padding: 0.625rem 0.5rem !important;
+            white-space: nowrap !important;
+        }
+
+        /* Force columns to full width */
+        [class*="col-"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+
+        /* Better spacing between stacked elements */
+        .mb-3, .my-3 {
+            margin-bottom: 0.875rem !important;
+        }
+
+        .mb-4, .my-4 {
+            margin-bottom: 1.125rem !important;
+        }
+    }
+
+    /* Extra small devices */
+    @media (max-width: 480px) {
+        html, body {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        .top-navbar {
+            padding: 0 0.875rem !important;
+        }
+
+        .navbar-brand {
+            font-size: 1.125rem !important;
+        }
+
+        .page-title {
+            font-size: 1.25rem !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.3 !important;
+        }
+
+        .page-description {
+            font-size: 0.875rem !important;
+        }
+
+        .main-content {
+            padding: 0.875rem !important;
+            max-width: 100vw !important;
+        }
+
+        /* Compact cards on small screens */
+        .card {
+            border-radius: 10px !important;
+        }
+
+        .card-body {
+            padding: 0.875rem !important;
+        }
+
+        .card-header {
+            padding: 0.75rem 0.875rem !important;
+            font-size: 0.9375rem !important;
+        }
+
+        /* Touch-optimized buttons */
+        .btn {
+            min-height: 44px !important;
+            padding: 0.625rem 1rem !important;
+            font-size: 0.9375rem !important;
+            width: 100% !important;
+        }
+
+        .btn-sm {
+            min-height: 38px !important;
+            font-size: 0.875rem !important;
+        }
+
+        /* Hide less important columns in tables */
+        .table .d-none-mobile {
+            display: none !important;
+        }
+
+        .table th, .table td {
+            padding: 0.5rem 0.375rem !important;
+            font-size: 0.8125rem !important;
+        }
+
+        /* Stack buttons vertically */
+        .btn-group {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 0.5rem !important;
+        }
+
+        .btn-group .btn {
+            width: 100% !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Tighter spacing for small screens */
+        .mb-3, .my-3 {
+            margin-bottom: 0.75rem !important;
+        }
+
+        .mb-4, .my-4 {
+            margin-bottom: 1rem !important;
+        }
+
+        /* Smaller navbar actions */
+        .nav-action-btn {
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            min-height: 36px !important;
+        }
+    }
+
+    /* ==================== ENHANCED NAVBAR MOBILE RESPONSIVENESS ==================== */
+
+    /* Small phones - Enhanced button sizing and spacing */
+    @media (max-width: 576px) {
+        .top-navbar {
+            padding: 0 1.25rem !important;
+        }
+
+        .navbar-actions .btn {
+            max-width: 80px !important;
+            padding: 0.35rem 0.6rem !important;
+            font-size: 0.8125rem !important;
+            font-weight: 600 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .navbar-actions {
+            gap: 0.5rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        .navbar-brand {
+            margin-right: 1rem !important;
+        }
+
+        .navbar-search {
+            display: none !important;
+        }
+    }
+
+    /* Very small phones - Maximum space optimization */
+    @media (max-width: 480px) {
+        .top-navbar {
+            padding: 0 1rem !important;
+        }
+
+        .navbar-actions .btn {
+            max-width: 70px !important;
+            padding: 0.3rem 0.5rem !important;
+            font-size: 0.75rem !important;
+            min-height: 40px !important;
+        }
+
+        .navbar-actions {
+            gap: 0.375rem !important;
+        }
+
+        .navbar-brand {
+            margin-right: 0.75rem !important;
+        }
+
+        #mobile-menu-toggle {
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
+        }
+    }
+
+    /* iPhone SE and similar small devices */
+    @media (max-width: 375px) {
+        .top-navbar {
+            padding: 0 0.875rem !important;
+        }
+
+        .navbar-actions .btn {
+            max-width: 65px !important;
+            padding: 0.25rem 0.45rem !important;
+            font-size: 0.7rem !important;
+            min-height: 38px !important;
+        }
+
+        .navbar-actions {
+            gap: 0.25rem !important;
+        }
+
+        .navbar-brand {
+            font-size: 1rem !important;
+            margin-right: 0.5rem !important;
+        }
+
+        .navbar-brand span {
+            display: none !important;
+        }
+
+        #mobile-menu-toggle {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            margin-right: 0.25rem !important;
+        }
+    }
+
+    /* ==================== MOBILE CARD AND LAYOUT RESPONSIVENESS ==================== */
+
+    /* Card Headers Mobile Optimization */
+    @media (max-width: 768px) {
+        /* Top Signals section */
+        .signals-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem !important;
+        }
+
+        .signals-title-section {
+            text-align: center;
+        }
+
+        .signals-view-all-btn {
+            width: 100% !important;
+            max-width: none !important;
+            justify-content: center !important;
+        }
+
+        /* Analytics Dashboard Header */
+        .analytics-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1.5rem !important;
+        }
+
+        .analytics-title-section {
+            text-align: left !important;
+        }
+
+        .analytics-timeframe-form {
+            flex-direction: column !important;
+            gap: 1rem !important;
+        }
+
+        .timeframe-control {
+            justify-content: flex-start !important;
+            gap: 1rem !important;
+        }
+
+        .analytics-timeframe-select {
+            min-width: 160px !important;
+            flex: 1 !important;
+        }
+
+        .analytics-apply-btn {
+            width: 100% !important;
+            align-self: stretch !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* General card header improvements */
+        .card-header.d-flex {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem !important;
+        }
+
+        .card-header .btn {
+            width: 100% !important;
+            max-width: 280px !important;
+            align-self: center !important;
+        }
+    }
+
+    /* Small Mobile Phones */
+    @media (max-width: 576px) {
+        .signals-header {
+            padding: 1rem !important;
+            gap: 0.75rem !important;
+        }
+
+        .analytics-header {
+            padding: 0.875rem !important;
+            gap: 1rem !important;
+        }
+
+        .analytics-timeframe-form {
+            gap: 0.75rem !important;
+        }
+
+        .timeframe-control {
+            gap: 1rem !important;
+            justify-content: flex-start !important;
+        }
+
+        .analytics-timeframe-select {
+            font-size: 0.875rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        .analytics-apply-btn {
+            font-size: 0.9rem !important;
+            padding: 0.625rem 1rem !important;
+            min-height: 44px !important;
+        }
+
+        .signals-view-all-btn {
+            font-size: 0.875rem !important;
+            padding: 0.625rem 1rem !important;
+        }
+    }
+
+    /* Very Small Phones */
+    @media (max-width: 480px) {
+        .analytics-header {
+            padding: 0.75rem !important;
+        }
+
+        .analytics-title-section h2 {
+            font-size: 1.25rem !important;
+        }
+
+        .analytics-apply-btn,
+        .signals-view-all-btn {
+            font-size: 0.8rem !important;
+            padding: 0.5rem 0.875rem !important;
+            min-height: 42px !important;
+        }
+
+        .analytics-timeframe-select {
+            font-size: 0.8rem !important;
+            flex: 1 !important;
+        }
+    }
+
+    /* ==================== BREADCRUMB NAVIGATION ==================== */
+    .breadcrumb-nav {
+        padding: 0.75rem 2rem 1rem;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .breadcrumb-item {
+        color: var(--text-tertiary);
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-item a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color var(--transition-fast);
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--primary);
+    }
+
+    .breadcrumb-item.active {
+        color: var(--text-primary);
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "/";
+        padding: 0 0.5rem;
+        color: var(--text-tertiary);
+    }
+
+    /* ==================== PAGE HEADER ==================== */
+    .page-header {
+        padding: 1rem 2rem 1.25rem;
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 0;
+    }
+
+    .page-header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .page-header-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9375rem;
+        margin-top: 0.375rem;
+        line-height: 1.5;
+    }
+
+    .page-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    /* ==================== CONTENT WRAPPER ==================== */
+    .content-wrapper {
+        padding: 1.5rem 2rem 2rem;
+    }
+
+    /* ==================== NOTIFICATION CENTER PANEL ==================== */
+    .notification-panel {
+        position: fixed;
+        top: var(--navbar-height);
+        right: -400px;
+        width: 400px;
+        max-width: 90vw;
+        height: calc(100vh - var(--navbar-height));
+        background: var(--bg-elevated);
+        border-left: 1px solid var(--border-color);
+        z-index: 1001;
+        transition: right var(--transition-normal);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification-panel.active {
+        right: 0;
+    }
+
+    .notification-panel-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    .notification-panel-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .notification-close {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--border-radius-sm);
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+    }
+
+    .notification-close:hover {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    .notification-panel-body {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notification-tabs {
+        display: flex;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+    }
+
+    .notification-tab {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all var(--transition-fast);
+        position: relative;
+        bottom: -1px;
+    }
+
+    .notification-tab:hover {
+        color: var(--text-primary);
+    }
+
+    .notification-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    .notification-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+
+    .notification-item {
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: background var(--transition-fast);
+        border: 1px solid transparent;
+    }
+
+    .notification-item:hover {
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
+    }
+
+    .notification-item.unread {
+        background: var(--bg-secondary);
+        border-color: var(--primary);
+        border-left-width: 3px;
+    }
+
+    .notification-item-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .notification-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .notification-icon.success {
+        background: linear-gradient(135deg, var(--success), var(--success-dark));
+    }
+
+    .notification-icon.danger {
+        background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+    }
+
+    .notification-icon.warning {
+        background: linear-gradient(135deg, var(--warning), var(--secondary));
+    }
+
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .notification-message {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .notification-time {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin-top: 0.375rem;
+    }
+
+    .notification-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--overlay-bg);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all var(--transition-normal);
+    }
+
+    .notification-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* ==================== LOADING STATES & SKELETONS ==================== */
+    .skeleton {
+        background: linear-gradient(
+            90deg,
+            var(--bg-secondary) 0%,
+            var(--bg-tertiary) 50%,
+            var(--bg-secondary) 100%
+        );
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s ease-in-out infinite;
+        border-radius: var(--border-radius-sm);
+    }
+
+    @keyframes skeleton-loading {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    .skeleton-notification {
+        height: 80px;
+        margin-bottom: 0.5rem;
+        border-radius: var(--border-radius-sm);
+        background: linear-gradient(
+            90deg,
+            var(--bg-secondary) 0%,
+            var(--bg-tertiary) 50%,
+            var(--bg-secondary) 100%
+        );
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-card {
+        height: 200px;
+        width: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .skeleton-text {
+        height: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .skeleton-text.short {
+        width: 60%;
+    }
+
+    .skeleton-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spinner-rotate 1s linear infinite;
+    }
+
+    @keyframes spinner-rotate {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(var(--bg-primary), 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        backdrop-filter: blur(2px);
+    }
+
+    /* ==================== EMPTY STATES ==================== */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--text-tertiary);
+        margin-bottom: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-message {
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        max-width: 400px;
+    }
+
+    .empty-state-action {
+        margin-top: 1rem;
+    }
+
+    .notification-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
+
+    .notification-empty i {
+        font-size: 3rem;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .notification-empty p {
+        color: var(--text-secondary);
+        font-size: 0.9375rem;
+        margin: 0;
+    }
+
+    /* ==================== MOBILE RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+        .breadcrumb-nav {
+            padding: 0.75rem 1rem 0;
+        }
+
+        .page-header {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .page-header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .page-header-actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .page-header-actions .btn {
+            flex: 1;
+        }
+
+        .content-wrapper {
+            padding: 0 1rem 1rem;
+        }
+
+        .notification-panel {
+            width: 100%;
+            max-width: 100vw;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 1.25rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb-nav {
+            padding: 0.5rem 0.875rem 0.75rem;
+        }
+
+        .page-header {
+            padding: 0.875rem;
+        }
+
+        .content-wrapper {
+            padding: 0 0.875rem 0.875rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body_content %}
+<!-- Top Navbar -->
+<nav class="top-navbar" role="navigation" aria-label="Main navigation">
+    <button class="nav-action-btn d-lg-none" id="mobile-menu-toggle" aria-label="Toggle mobile menu" aria-expanded="false">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+
+    <a href="{% url 'dashboard:home' %}" class="navbar-brand" aria-label="KillShill home">
+        <i class="fas fa-shield-halved" aria-hidden="true"></i>
+        <span>KillShill</span>
+    </a>
+
+    <div class="navbar-search" role="search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="text" placeholder="Search influencers, assets..." id="global-search" aria-label="Search influencers and assets">
+    </div>
+
+    <div class="navbar-actions">
+        <!-- Theme toggle button - COMMENTED OUT FOR DEFAULT DARK THEME ONLY -->
+        <!--
+        <button class="nav-action-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle dark/light theme">
+            <i class="fas fa-moon" aria-hidden="true"></i>
+        </button>
+        -->
+
+        {% if user.is_authenticated %}
+        <button class="nav-action-btn" id="notification-btn" title="Notifications" aria-label="View notifications" aria-haspopup="dialog">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            <span class="badge {% if not unread_notifications_count %}d-none{% endif %}" id="notification-count" aria-label="{{ unread_notifications_count }} unread notifications">
+                {% if unread_notifications_count %}{{ unread_notifications_count }}{% endif %}
+            </span>
+        </button>
+
+        <div class="dropdown">
+            <button class="user-menu-btn" data-bs-toggle="dropdown" aria-label="User menu" aria-haspopup="true" aria-expanded="false">
+                <div class="user-avatar" aria-hidden="true">{{ user.username|slice:":1"|upper }}</div>
+                <span style="color: var(--text-primary) !important;">{{ user.get_full_name|default:user.username }}</span>
+                <i class="fas fa-chevron-down" style="font-size: 0.75rem; color: var(--text-primary) !important;" aria-hidden="true"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" role="menu">
+                {% comment %} <li role="none"><a class="dropdown-item" href="{% url 'dashboard:settings' %}" role="menuitem"><i class="fas fa-user me-2" aria-hidden="true"></i>Profile</a></li> {% endcomment %}
+                <li role="none"><a class="dropdown-item" href="{% url 'dashboard:settings' %}" role="menuitem"><i class="fas fa-cog me-2" aria-hidden="true"></i>Settings</a></li>
+                <li role="none"><hr class="dropdown-divider"></li>
+                <li role="none"><a class="dropdown-item" href="{% url 'authentication:logout' %}" role="menuitem"><i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Logout</a></li>
+            </ul>
+        </div>
+        {% else %}
+        <a href="{% url 'authentication:login' %}" class="btn btn-sm btn-gradient">Login</a>
+        <a href="{% url 'authentication:signup' %}" class="btn btn-sm btn-outline-gradient">Sign Up</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar" role="complementary" aria-label="Sidebar navigation">
+    {% comment %} <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true">
+        <i class="fas fa-chevron-left" aria-hidden="true"></i>
+    </button> {% endcomment %}
+
+    <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:home' %}#section-dashboard"
+               class="sidebar-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+               data-tooltip="Dashboard"
+               data-scroll-link
+               data-home-target="section-dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:home' %}#section-leaderboard"
+               class="sidebar-nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+               data-tooltip="Leaderboard"
+               data-scroll-link
+               data-home-target="section-leaderboard">
+                <i class="fas fa-trophy"></i>
+                <span>Leaderboard</span>
+            </a>
+        </li>
+        
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:home' %}#section-trending"
+               class="sidebar-nav-link {% if request.resolver_match.url_name == 'trending_kols' %}active{% endif %}"
+               data-tooltip="Trending KOLs"
+               data-scroll-link
+               data-home-target="section-trending">
+                <i class="fas fa-fire"></i>
+                <span>Trending KOLs</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:home' %}#section-signals"
+               class="sidebar-nav-link {% if request.resolver_match.url_name == 'signals' %}active{% endif %}"
+               data-tooltip="Top Signals"
+               data-scroll-link
+               data-home-target="section-signals">
+                <i class="fas fa-bullseye"></i>
+                <span>Top Signals</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:home' %}#section-insights"
+               class="sidebar-nav-link {% if request.resolver_match.url_name == 'insights' %}active{% endif %}"
+               data-tooltip="Insights"
+               data-scroll-link
+               data-home-target="section-insights">
+                <i class="fas fa-wave-square"></i>
+                <span>Insights</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:home' %}#section-analytics"
+               class="sidebar-nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"
+               data-tooltip="Analytics"
+               data-scroll-link
+               data-home-target="section-analytics">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+        </li>
+
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:search' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'search' %}active{% endif %}" data-tooltip="Search">
+                <i class="fas fa-search"></i>
+                <span>Search</span>
+            </a>
+        </li>
+        
+        {% comment %} <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:signals' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'signals' %}active{% endif %}" data-tooltip="Signals">
+                <i class="fas fa-bullseye"></i>
+                <span>Signals</span>
+            </a>
+        </li> {% endcomment %}
+        <div class="sidebar-section-title">My Account</div>
+
+        {% if user.is_authenticated %}
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:submit_influencer' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'submit_influencer' %}active{% endif %}" data-tooltip="Submit Influencer">
+                <i class="fas fa-plus-circle"></i>
+                <span>Submit Influencer</span>
+            </a>
+        </li>
+        {% comment %}
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:submissions_tracking' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'submissions_tracking' %}active{% endif %}" data-tooltip="My Submissions">
+                <i class="fas fa-tasks"></i>
+                <span>My Submissions</span>
+            </a>
+        </li>
+        {% endcomment %}
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:watchlist' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'watchlist' %}active{% endif %}" data-tooltip="Watchlist">
+                <i class="fas fa-bookmark"></i>
+                <span>Watchlist</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item">
+            <a href="{% url 'dashboard:settings' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" data-tooltip="Settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </li>
+
+        {# Admin panel temporarily hidden #}
+        {% else %}
+        <li class="sidebar-nav-item">
+            <a href="{% url 'authentication:login' %}" class="sidebar-nav-link" data-tooltip="Sign In">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Sign In</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item">
+            <a href="{% url 'authentication:signup' %}" class="sidebar-nav-link" data-tooltip="Sign Up">
+                <i class="fas fa-user-plus"></i>
+                <span>Sign Up</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</aside>
+
+<!-- Sidebar Overlay for Mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- Main Content -->
+<div class="dashboard-container">
+    <main class="main-content" role="main">
+        <!-- Breadcrumb Navigation -->
+        {% block breadcrumb %}
+        {% if self.breadcrumb_items %}
+        <nav aria-label="breadcrumb" class="breadcrumb-nav">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard:home' %}"><i class="fas fa-home" aria-hidden="true"></i></a></li>
+                {% block breadcrumb_items %}{% endblock %}
+            </ol>
+        </nav>
+        {% endif %}
+        {% endblock %}
+
+        <!-- Page Header -->
+        {% block page_header %}
+        {% if self.page_title %}
+        <div class="page-header">
+            <div class="page-header-content">
+                <div class="page-header-text">
+                    <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+                    {% block page_subtitle %}{% endblock %}
+                </div>
+                <div class="page-header-actions">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+
+        <!-- Alert Messages -->
+        {% if messages %}
+        <div class="alert-container mb-4" role="alert">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Main Content Area -->
+        <div class="content-wrapper">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<!-- Notification Center Panel -->
+<div class="notification-panel" id="notification-panel" role="dialog" aria-label="Notifications">
+    <div class="notification-panel-header">
+        <h3>Notifications</h3>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-sm btn-outline-primary" id="mark-all-read-btn" title="Mark all as read" style="display: none;">
+                <i class="fas fa-check-double"></i>
+            </button>
+            <button class="notification-close" id="notification-close" aria-label="Close notifications">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <div class="notification-panel-body">
+        <div class="notification-tabs">
+            <button class="notification-tab active" data-tab="all">All</button>
+            <button class="notification-tab" data-tab="unread">Unread</button>
+            <button class="notification-tab" data-tab="signals">Signals</button>
+        </div>
+        <div class="notification-list" id="notification-list">
+            <!-- Loading State -->
+            <div class="notification-loading">
+                <div class="skeleton-notification"></div>
+                <div class="skeleton-notification"></div>
+                <div class="skeleton-notification"></div>
+            </div>
+            <!-- Empty State -->
+            <div class="notification-empty" style="display: none;">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>
+            <!-- Notifications will be loaded here via JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Notification Panel Overlay -->
+<div class="notification-overlay" id="notification-overlay"></div>
+
+<script>
+    // Sidebar Toggle
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+
+    // Desktop sidebar toggle - DISABLED (sidebar always expanded on large screens)
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Do nothing - sidebar toggle disabled on large screens
+            // The sidebar should always remain expanded on desktop
+        });
+    }
+
+    // Load sidebar state (desktop only)
+    function applySidebarState() {
+        if (window.innerWidth > 1024) {
+            // Large screens: always ensure sidebar is expanded (remove collapsed class and clear localStorage)
+            sidebar.classList.remove('collapsed');
+            if (sidebarToggle) {
+                {% comment %} sidebarToggle.querySelector('i').className = 'fas fa-chevron-left'; {% endcomment %}
+                sidebarToggle.setAttribute('aria-expanded', 'true');
+            }
+            // Clear any stored collapsed state to prevent issues
+            localStorage.removeItem('sidebar-collapsed');
+        }
+        // For mobile/tablet screens, the sidebar behavior is handled by the mobile toggle logic
+    }
+    
+    // Apply initial sidebar state
+    applySidebarState();
+
+    // Mobile menu toggle - SLIDES sidebar in from left
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = sidebar.classList.contains('active');
+
+            if (isOpen) {
+                // Close sidebar
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+                mobileMenuToggle.setAttribute('aria-expanded', 'false');
+            } else {
+                // Open sidebar - slides in from left
+                sidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                document.body.classList.add('sidebar-open');
+                mobileMenuToggle.setAttribute('aria-expanded', 'true');
+            }
+        });
+    }
+
+    // Close sidebar when clicking overlay
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    // Close sidebar on mobile when clicking a link
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+                if (mobileMenuToggle) {
+                    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    });
+
+    // Handle window resize - close mobile sidebar if window becomes desktop size
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+            }
+            // Apply correct sidebar state for the new screen size
+            applySidebarState();
+        }, 250);
+    });
+
+    // Global search
+    const globalSearch = document.getElementById('global-search');
+    if (globalSearch) {
+        globalSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = globalSearch.value.trim();
+                if (query) {
+                    window.location.href = `{% url 'dashboard:search' %}?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+    }
+
+    // ==================== NOTIFICATION PANEL ====================
+    const notificationPanel = document.getElementById('notification-panel');
+    const notificationBtn = document.getElementById('notification-btn');
+    const notificationClose = document.getElementById('notification-close');
+    const notificationOverlay = document.getElementById('notification-overlay');
+    const notificationList = document.getElementById('notification-list');
+
+    // Open notification panel
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            notificationPanel.classList.add('active');
+            notificationOverlay.classList.add('active');
+            loadNotifications();
+        });
+    }
+
+    // Close notification panel
+    function closeNotificationPanel() {
+        notificationPanel.classList.remove('active');
+        notificationOverlay.classList.remove('active');
+    }
+
+    if (notificationClose) {
+        notificationClose.addEventListener('click', closeNotificationPanel);
+    }
+
+    if (notificationOverlay) {
+        notificationOverlay.addEventListener('click', closeNotificationPanel);
+    }
+    
+    // Mark all as read button
+    const markAllReadBtn = document.getElementById('mark-all-read-btn');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', markAllNotificationsRead);
+    }
+
+    // Notification tabs
+    document.querySelectorAll('.notification-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.notification-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const filter = tab.dataset.tab;
+            filterNotifications(filter);
+        });
+    });
+
+    // Load notifications function
+    let notificationData = [];
+    let currentNotificationFilter = 'all';
+
+    async function loadNotifications() {
+        if (!notificationList) return;
+
+        const loading = notificationList.querySelector('.notification-loading');
+        const empty = notificationList.querySelector('.notification-empty');
+
+        if (loading) loading.style.display = 'block';
+        if (empty) empty.style.display = 'none';
+
+        notificationList.querySelectorAll('.notification-item').forEach(item => item.remove());
+
+        try {
+            const response = await fetch('{% url "dashboard:api_notifications" %}?limit=15', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            notificationData = data.notifications || [];
+            updateNotificationBadge(data.unread_count || 0);
+            renderNotifications(currentNotificationFilter);
+        } catch (error) {
+            console.error('Notification load error:', error);
+            if (empty) {
+                empty.style.display = 'flex';
+                const message = empty.querySelector('p');
+                if (message) message.textContent = 'Unable to load notifications.';
+            }
+        } finally {
+            if (loading) loading.style.display = 'none';
+        }
+    }
+
+    function renderNotifications(filter = 'all') {
+        if (!notificationList) return;
+
+        const empty = notificationList.querySelector('.notification-empty');
+        notificationList.querySelectorAll('.notification-item').forEach(item => item.remove());
+
+        let filtered = notificationData;
+        if (filter === 'unread') {
+            filtered = notificationData.filter(item => item.unread);
+        } else if (filter === 'signals') {
+            filtered = notificationData.filter(item => item.category === 'signals');
+        }
+
+        if (!filtered.length) {
+            if (empty) {
+                empty.style.display = 'flex';
+                const message = empty.querySelector('p');
+                if (message) {
+                    message.textContent = filter === 'unread' ? 'No unread notifications' : 'You are all caught up!';
+                }
+            }
+            return;
+        }
+
+        if (empty) empty.style.display = 'none';
+
+        const fragment = document.createDocumentFragment();
+        filtered.forEach(item => {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = `notification-item ${item.unread ? 'unread' : ''}`;
+            notificationItem.dataset.id = item.id;
+            notificationItem.dataset.category = item.category || 'general';
+            notificationItem.innerHTML = `
+                <div class="notification-item-header">
+                    <div class="notification-icon ${item.type || 'info'}">
+                        <i class="fas ${item.icon || 'fa-bell'}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${item.title || 'Notification'}</div>
+                        <div class="notification-message">${item.message || ''}</div>
+                        <div class="notification-time">${item.time || ''}</div>
+                    </div>
+                </div>
+            `;
+            notificationItem.addEventListener('click', () => markNotificationRead(item.id, notificationItem));
+            fragment.appendChild(notificationItem);
+        });
+
+        notificationList.appendChild(fragment);
+    }
+
+    async function markNotificationRead(id, element) {
+        if (!element.classList.contains('unread')) return;
+        
+        try {
+            // Call API to mark as read
+            const response = await fetch('{% url "dashboard:api_mark_notification_read" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    notification_id: id
+                })
+            });
+            
+            if (response.ok) {
+                // Update UI
+                element.classList.remove('unread');
+                const target = notificationData.find(item => item.id === id);
+                if (target) target.unread = false;
+                const remainingUnread = notificationData.filter(item => item.unread).length;
+                updateNotificationBadge(remainingUnread);
+            } else {
+                console.error('Failed to mark notification as read:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+    
+    function getCsrfToken() {
+        // Get CSRF token from cookie
+        const csrfCookie = document.cookie.split(';')
+            .find(cookie => cookie.trim().startsWith('csrftoken='));
+        return csrfCookie ? csrfCookie.split('=')[1] : '';
+    }
+
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById('notification-count');
+        const markAllBtn = document.getElementById('mark-all-read-btn');
+        
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.classList.remove('d-none');
+                badge.setAttribute('aria-label', `${count} unread notifications`);
+            } else {
+                badge.textContent = '';
+                badge.classList.add('d-none');
+                badge.setAttribute('aria-label', 'No unread notifications');
+            }
+        }
+        
+        // Show/hide mark all as read button
+        if (markAllBtn) {
+            markAllBtn.style.display = count > 0 ? 'block' : 'none';
+        }
+    }
+    
+    // Mark all notifications as read
+    async function markAllNotificationsRead() {
+        const markAllBtn = document.getElementById('mark-all-read-btn');
+        if (markAllBtn) markAllBtn.disabled = true;
+        
+        try {
+            const response = await fetch('{% url "dashboard:api_mark_all_notifications_read" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Update all unread notifications in UI
+                document.querySelectorAll('.notification-item.unread').forEach(element => {
+                    element.classList.remove('unread');
+                });
+                
+                // Update notification data
+                notificationData.forEach(item => {
+                    if (item.unread) item.unread = false;
+                });
+                
+                // Update badge
+                updateNotificationBadge(0);
+                
+                // Re-render if on unread filter
+                if (currentNotificationFilter === 'unread') {
+                    renderNotifications('unread');
+                }
+                
+                console.log(`Marked ${data.marked_count} notifications as read`);
+            } else {
+                console.error('Failed to mark all notifications as read:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        } finally {
+            if (markAllBtn) markAllBtn.disabled = false;
+        }
+    }
+
+    // Filter notifications by tab
+    function filterNotifications(filter) {
+        currentNotificationFilter = filter;
+        renderNotifications(filter);
+    }
+
+    // Close notification panel on ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeNotificationPanel();
+        if (window.innerWidth <= 1024 && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+            }
+        }
+    });
+</script>
+
+<script>
+(function() {
+    function getNavOffset() {
+        const navbar = document.querySelector('.top-navbar');
+        return (navbar ? navbar.offsetHeight : 0) + 24;
+    }
+
+    function scrollToHash(hash, behavior = 'smooth') {
+        if (!hash) return false;
+        const target = document.querySelector(hash);
+        if (!target) return false;
+        const top = target.getBoundingClientRect().top + window.pageYOffset - getNavOffset();
+        window.scrollTo({ top, behavior });
+        return true;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('a[data-scroll-link]').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                const hash = link.hash;
+                if (!hash) return;
+                const isHomeLink = !!link.dataset.homeTarget;
+                if (link.pathname === window.location.pathname) {
+                    event.preventDefault();
+                    scrollToHash(hash, 'smooth');
+                    history.replaceState(null, '', hash);
+                    if (isHomeLink) {
+                        document.dispatchEvent(new CustomEvent('home-nav-manual-jump', { detail: { target: link.dataset.homeTarget } }));
+                    }
+                }
+            });
+        });
+        if (window.location.pathname === '{% url "dashboard:home" %}' && window.location.hash) {
+            setTimeout(() => scrollToHash(window.location.hash, 'auto'), 150);
+        }
+    });
+
+    window.addEventListener('hashchange', () => {
+        scrollToHash(window.location.hash, 'smooth');
+    });
+})();
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- KOL Features Script - Loaded on all dashboard pages -->
+{% load static %}
+<script src="{% static 'js/kol-features.js' %}"></script>
+{% endblock %}

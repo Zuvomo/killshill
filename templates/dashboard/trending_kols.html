@@ -1,0 +1,228 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Trending KOLs - KillShill{% endblock %}
+
+{% block page_title %}Trending KOLs{% endblock %}
+
+{% block page_subtitle %}
+    <p class="page-subtitle">Discover top performers across different markets</p>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="mb-1"><i class="fas fa-trending-up me-2 text-danger"></i>Trending KOLs</h2>
+        <p class="text-muted mb-0">Live leaderboard of influencers gaining momentum across the selected window.</p>
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <label class="text-muted small mb-0" for="timeframe">Timeframe</label>
+        <select class="form-select" id="timeframe" name="timeframe" onchange="this.form.submit()">
+            <option value="24h" {% if selected_timeframe == '24h' %}selected{% endif %}>Last 24 Hours</option>
+            <option value="7d" {% if selected_timeframe == '7d' %}selected{% endif %}>Last 7 Days</option>
+            <option value="30d" {% if selected_timeframe == '30d' %}selected{% endif %}>Last 30 Days</option>
+        </select>
+    </form>
+</div>
+
+<!-- Trending Categories -->
+<div class="row mb-4">
+    <div class="col-lg-4 mb-3">
+        <div class="card bg-gradient-primary">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">🔥 Hottest Signal</h6>
+                        {% if highlight_cards.hottest %}
+                        <h5 class="mb-0">{{ highlight_cards.hottest.name }}</h5>
+                        <small>{{ highlight_cards.hottest.accuracy }}% accuracy · {{ highlight_cards.hottest.calls }} calls</small>
+                        {% else %}
+                        <h5 class="mb-0">No data</h5>
+                        <small>Not enough signals yet</small>
+                        {% endif %}
+                    </div>
+                    <i class="fas fa-fire fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-3">
+        <div class="card bg-gradient-success">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">⚡ Most Active</h6>
+                        {% if highlight_cards.active %}
+                        <h5 class="mb-0">{{ highlight_cards.active.name }}</h5>
+                        <small>{{ highlight_cards.active.calls }} signals · {{ highlight_cards.active.accuracy }}% accuracy</small>
+                        {% else %}
+                        <h5 class="mb-0">No activity</h5>
+                        <small>Waiting for new calls</small>
+                        {% endif %}
+                    </div>
+                    <i class="fas fa-bolt fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-3">
+        <div class="card bg-gradient-warning">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">📈 Rising Star</h6>
+                        {% if highlight_cards.rising %}
+                        <h5 class="mb-0">{{ highlight_cards.rising.name }}</h5>
+                        <small>+{{ highlight_cards.rising.trend_delta }}% accuracy swing</small>
+                        {% else %}
+                        <h5 class="mb-0">No risers</h5>
+                        <small>Need more history</small>
+                        {% endif %}
+                    </div>
+                    <i class="fas fa-star fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trending Lists -->
+<div class="row">
+    <!-- Top Trending -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-fire text-danger me-2"></i>Top Trending
+                </h5>
+                <span class="badge bg-danger">Live</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="trending-list">
+                    {% for item in top_trending %}
+                    <div class="list-group-item bg-transparent">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="badge {% if forloop.first %}bg-danger{% else %}bg-secondary{% endif %} rounded-circle p-2" style="width: 30px; height: 30px;">{{ forloop.counter }}</div>
+                            </div>
+                            <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-size: 14px;">
+                                {{ item.name|default:'?'|first|upper }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ item.name }}</h6>
+                                        {% if item.handle %}<small class="text-muted">@{{ item.handle }}</small>{% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold {% if item.trend_delta >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {% if item.trend_delta >= 0 %}+{% endif %}{{ item.trend_delta }}%
+                                        </div>
+                                        <small class="text-muted">trend</small>
+                                    </div>
+                                </div>
+                                <div class="mt-1 d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge bg-success">{{ item.accuracy }}%</span>
+                                    <span class="badge bg-info">{{ item.calls }} calls</span>
+                                    <span class="text-muted small text-uppercase">{{ item.platform }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item bg-transparent text-center text-muted py-4">
+                        No signals in this timeframe yet.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rising Stars -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-rocket text-warning me-2"></i>Rising Stars
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="rising-list">
+                    {% for item in rising_stars %}
+                    <div class="list-group-item bg-transparent">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-arrow-up text-success fa-lg"></i>
+                            </div>
+                            <div class="avatar-circle bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-size: 14px;">
+                                {{ item.name|default:'?'|first|upper }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ item.name }}</h6>
+                                        {% if item.handle %}<small class="text-muted">@{{ item.handle }}</small>{% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="text-success fw-bold">↗ {{ item.trend_delta }}%</div>
+                                        <small class="text-muted">{{ item.calls }} calls</small>
+                                    </div>
+                                </div>
+                                <div class="mt-1 d-flex flex-wrap gap-2 align-items-center">
+                                    <span class="badge bg-warning">{{ item.accuracy }}%</span>
+                                    <span class="badge bg-info">{{ item.calls }} total</span>
+                                    <span class="text-muted small text-uppercase">{{ item.platform }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item bg-transparent text-center text-muted py-4">
+                        No rising stars detected for this period.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Platform Trends -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Platform Trends</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for platform in platform_cards %}
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="card bg-primary h-100 text-white" style="background: linear-gradient(135deg, #312e81, #4338ca);">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-light text-dark me-2">{{ platform.platform }}</span>
+                                            <h6 class="mb-0 text-white">Accuracy</h6>
+                                        </div>
+                                        <div class="h4 mb-0">{{ platform.accuracy }}%</div>
+                                        <small class="text-white-50">{{ platform.calls }} calls</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <p class="text-muted text-center mb-0 py-4">No platform data for this timeframe.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{% endblock %}

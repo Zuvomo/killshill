@@ -1,0 +1,27 @@
+<script>
+(function initInsightsTabs() {
+    const setup = () => {
+        document.querySelectorAll('.insights-dashboard').forEach(dashboard => {
+            if (dashboard.dataset.tabsBound === '1') return;
+            dashboard.dataset.tabsBound = '1';
+            const tabs = dashboard.querySelectorAll('.insights-tab');
+            const panels = dashboard.querySelectorAll('.insights-section');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    tabs.forEach(btn => btn.classList.toggle('active', btn === tab));
+                    panels.forEach(panel => {
+                        panel.classList.toggle('active', panel.dataset.panel === target);
+                    });
+                });
+            });
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setup();
+    }
+})();
+</script>
